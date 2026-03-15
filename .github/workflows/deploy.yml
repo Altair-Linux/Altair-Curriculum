@@ -1,0 +1,297 @@
+name: Build and Deploy
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "content/**"
+      - "templates/**"
+      - "assets/**"
+      - "scripts/**"
+      - "public/**"
+      - "package.json"
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "content/**"
+      - "templates/**"
+      - "assets/**"
+      - "scripts/**"
+  workflow_dispatch:
+
+concurrency:
+  group: pages-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+env:
+  NODE_VERSION: "20"
+
+jobs:
+  detect-changes:
+    name: Detect Changed Files
+    runs-on: ubuntu-latest
+    outputs:
+      content_changed: ${{ steps.filter.outputs.content }}
+      assets_changed: ${{ steps.filter.outputs.assets }}
+      scripts_changed: ${{ steps.filter.outputs.scripts }}
+      any_changed: ${{ steps.filter.outputs.content == 'true' || steps.filter.outputs.assets == 'true' || steps.filter.outputs.scripts == 'true' }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Filter changed paths
+        id: filter
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            content:
+              - 'content/**/*.md'
+            assets:
+              - 'assets/**'
+              - 'templates/**'
+              - 'public/**'
+            scripts:
+              - 'scripts/**'
+              - 'package.json'
+
+      - name: Report changes
+        run: |
+          echo "Content changed: ${{ steps.filter.outputs.content }}"
+          echo "Assets changed:  ${{ steps.filter.outputs.assets }}"
+          echo "Scripts changed: ${{ steps.filter.outputs.scripts }}"
+
+  build:
+    name: Build Site
+    runs-on: ubuntu-latest
+    needs: detect-changes
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: List content files
+        run: |
+          echo "=== Markdown files found ==="
+          find content -name "*.md" | sort
+          echo "Total: $(find content -name '*.md' | wc -l) files"
+
+      - name: Run generator
+        run: npm run build
+
+      - name: Verify output
+        run: |
+          echo "=== Generated files ==="
+          find dist -name "*.html" | sort
+          echo ""
+          echo "=== nav.json ==="
+          cat dist/nav.json
+          echo ""
+          echo "=== search-index.json entry count ==="
+          node -e "const d=require('./dist/search-index.json');console.log(d.length + ' entries');"
+
+      - name: Validate nav.json
+        run: |
+          node -e "
+            const nav = require('./dist/nav.json');
+            const idx = require('./dist/search-index.json');
+            const fs  = require('fs');
+            const path = require('path');
+
+            let errors = 0;
+
+            for (const [section, pages] of Object.entries(nav)) {
+              for (const page of pages) {
+                const file = path.join('dist', page.url.replace(/^\//, ''));
+                if (!fs.existsSync(file)) {
+                  console.error('MISSING: ' + file);
+                  errors++;
+                }
+                if (!page.title) {
+                  console.error('NO TITLE: ' + page.url);
+                  errors++;
+                }
+              }
+            }
+
+            const navUrls  = new Set(Object.values(nav).flat().map(p => p.url));
+            const idxUrls  = new Set(idx.map(e => e.url));
+            for (const url of navUrls) {
+              if (!idxUrls.has(url)) {
+                console.warn('MISSING FROM SEARCH INDEX: ' + url);
+              }
+            }
+
+            if (errors > 0) {
+              console.error(errors + ' validation error(s) found.');
+              process.exit(1);
+            }
+            console.log('Validation passed. ' + navUrls.size + ' pages verified.');
+          "
+
+      - name: Check HTML output structure
+        run: |
+          node -e "
+            const fs   = require('fs');
+            const path = require('path');
+
+            const htmlFiles = [];
+            function walk(dir) {
+              for (const e of fs.readdirSync(dir, {withFileTypes: true})) {
+                const p = path.join(dir, e.name);
+                if (e.isDirectory()) walk(p);
+                else if (e.name.endsWith('.html')) htmlFiles.push(p);
+              }
+            }
+            walk('dist');
+
+            let errors = 0;
+            for (const file of htmlFiles) {
+              const content = fs.readFileSync(file, 'utf8');
+              if (!content.includes('<html')) { console.error('No <html>: ' + file); errors++; }
+              if (!content.includes('</html>')) { console.error('Unclosed <html>: ' + file); errors++; }
+              if (!content.includes('main-content')) { console.error('Missing main-content: ' + file); errors++; }
+              if (!content.includes('__NAV_JSON__')) { console.error('Missing NAV_JSON: ' + file); errors++; }
+            }
+
+            if (errors > 0) { console.error(errors + ' HTML errors.'); process.exit(1); }
+            console.log('HTML check passed. ' + htmlFiles.length + ' files validated.');
+          "
+
+      - name: Upload Pages artifact
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    name: Deploy to GitHub Pages
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+  pr-preview:
+    name: PR Preview Check
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.event_name == 'pull_request'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Report new and changed pages
+        run: |
+          echo "=== Pages that would be published ==="
+          find dist -name "*.html" | sed 's|dist/||' | sort
+
+          TOTAL=$(find dist -name "*.html" | wc -l)
+          LESSONS=$(node -e "const d=require('./dist/search-index.json');console.log(d.length);")
+          echo ""
+          echo "Total HTML files : $TOTAL"
+          echo "Lessons indexed  : $LESSONS"
+
+      - name: Comment PR with build summary
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { execSync } = require('child_process');
+            const total   = execSync("find dist -name '*.html' | wc -l").toString().trim();
+            const lessons = execSync("node -e \"const d=require('./dist/search-index.json');console.log(d.length);\"").toString().trim();
+            const files   = execSync("find dist -name '*.html' | sed 's|dist/||' | sort | head -20").toString().trim();
+
+            const body = [
+              '## 📚 Altair Build Preview',
+              '',
+              '| Metric | Value |',
+              '|--------|-------|',
+              `| HTML pages generated | ${total} |`,
+              `| Lessons in search index | ${lessons} |`,
+              '',
+              '<details><summary>Generated pages (first 20)</summary>',
+              '',
+              '```',
+              files,
+              '```',
+              '</details>',
+              '',
+              '_Build passed all validation checks ✅_',
+            ].join('\n');
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body,
+            });
+
+  lint:
+    name: Lint Markdown
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run markdownlint
+        run: |
+          if find content -name "*.md" | grep -q .; then
+            npx markdownlint "content/**/*.md" --config .markdownlint.json || true
+          else
+            echo "No Markdown files to lint."
+          fi
+
+  notify-failure:
+    name: Notify on Failure
+    runs-on: ubuntu-latest
+    needs: [build, deploy]
+    if: failure() && github.ref == 'refs/heads/main'
+    steps:
+      - name: Report failure
+        run: |
+          echo "::error::Build or deployment failed on main branch."
+          echo "Check the workflow run for details:"
+          echo "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
