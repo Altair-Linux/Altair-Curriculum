@@ -1,0 +1,86 @@
+{
+  "default": true,
+
+  "MD013": {
+    "line_length": 160,
+    "heading_line_length": 120,
+    "code_block_line_length": 160,
+    "code_blocks": false,
+    "tables": false
+  },
+
+  "MD033": {
+    "allowed_elements": [
+      "details",
+      "summary",
+      "div",
+      "span",
+      "button",
+      "kbd",
+      "sup",
+      "sub",
+      "br",
+      "abbr",
+      "mark"
+    ]
+  },
+
+  "MD041": {
+    "front_matter_title": "^\\s*title\\s*[:=]"
+  },
+
+  "MD024": {
+    "siblings_only": true
+  },
+
+  "MD026": {
+    "punctuation": ".,;:!"
+  },
+
+  "MD007": {
+    "indent": 2
+  },
+
+  "MD010": {
+    "code_blocks": false
+  },
+
+  "MD004": {
+    "style": "dash"
+  },
+
+  "MD029": {
+    "style": "ordered"
+  },
+
+  "MD030": {
+    "ul_single": 1,
+    "ol_single": 1,
+    "ul_multi": 1,
+    "ol_multi": 1
+  },
+
+  "MD035": {
+    "style": "---"
+  },
+
+  "MD046": {
+    "style": "fenced"
+  },
+
+  "MD048": {
+    "style": "backtick"
+  },
+
+  "MD049": {
+    "style": "asterisk"
+  },
+
+  "MD050": {
+    "style": "asterisk"
+  },
+
+  "MD036": false,
+
+  "MD045": false
+}
