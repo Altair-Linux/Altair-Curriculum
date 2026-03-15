@@ -9,11 +9,11 @@ prerequisites: [What is a Computer?]
 type: lesson
 ---
 
-An **algorithm** is a set of step-by-step instructions for solving a problem. You follow algorithms every single day without even knowing it! Getting dressed in the morning, tying your shoes, and making a snack all have algorithms.
+Algorithms are sets of step-by-step instructions that help us solve problems. You follow algorithms every day without even realizing it! Getting dressed, tying your shoes, or making a snack are all examples of algorithms.
 
 ## Your Morning Algorithm
 
-Think about how you get ready for school. The steps need to happen in the right **order** — that is called **sequencing**.
+Think about how you get ready for school. The steps need to happen in the right **order** — this is called **sequencing**.
 
 flowchart TD
     A([🛏️ Wake up]) --> B[😴 Turn off alarm]
@@ -23,16 +23,17 @@ flowchart TD
     E --> F[🥣 Eat breakfast]
     F --> G([🎒 Go to school])
 
-What would happen if you tried to eat breakfast *before* getting out of bed? Some steps simply must come in a certain order!
+
+Some steps must happen in a specific order. What would happen if you tried to eat breakfast *before* getting out of bed?
 
 ## Three Big Ideas in Algorithms
 
-### 1. Sequence
+### Sequence
 
 Steps happen one after another in a specific order.
 
 <details class="collapsible">
-<summary>Sequence activity: Scrambled sandwich</summary>
+<summary>Activity: Scrambled sandwich</summary>
 <div class="details-body">
 
 These sandwich steps are out of order. Can you put them in the right sequence?
@@ -48,11 +49,11 @@ These sandwich steps are out of order. Can you put them in the right sequence?
 </div>
 </details>
 
-### 2. Loops
+### Loops
 
 Sometimes we repeat a step many times. Instead of writing it over and over, we use a **loop**.
 
-Imagine drying dishes. You do not write:
+Imagine drying dishes. You do not write each step individually:
 
 ```
 dry dish 1
@@ -61,7 +62,7 @@ dry dish 3
 dry dish 4
 ```
 
-Instead, a loop says:
+A loop makes it easier:
 
 ```
 repeat until no dishes left:
@@ -71,7 +72,7 @@ repeat until no dishes left:
 ```
 
 <details class="collapsible">
-<summary>Loop activity: The jumping game</summary>
+<summary>Activity: The jumping game</summary>
 <div class="details-body">
 
 Stand up! Follow this algorithm:
@@ -83,12 +84,12 @@ repeat 5 times:
     land and say "loop!"
 ```
 
-You just ran a loop 5 times. In programming, we call the number of times a loop runs its **count**.
+In programming, the number of times a loop runs is called its **count**.
 
 </div>
 </details>
 
-### 3. Conditionals
+### Conditionals
 
 A **conditional** checks if something is true and then decides what to do. We use the words **if** and **else**.
 
@@ -100,13 +101,13 @@ flowchart TD
     C --> D
 ```
 
-This is exactly how computers make decisions. Every video game, app, and website is full of conditionals.
+Every video game, app, and website uses conditionals to make decisions.
 
 <details class="collapsible">
-<summary>Conditional activity: The snack machine</summary>
+<summary>Activity: The snack machine</summary>
 <div class="details-body">
 
-Write an algorithm for choosing a snack using an if/else:
+Write an algorithm for choosing a snack using if/else:
 
 ```
 if I am very hungry:
@@ -117,14 +118,14 @@ else:
     drink a glass of water
 ```
 
-Now write your own! Replace "hungry" with something from your own day — like choosing what to wear, or what game to play outside.
+Now write your own! Replace "hungry" with a situation from your day — like choosing what to wear or what game to play.
 
 </div>
 </details>
 
-## Algorithms Use All Three
+## Algorithms Combine Sequence, Loops, and Conditionals
 
-Real algorithms mix sequence, loops, and conditionals together. Here is an algorithm for cleaning your room:
+Here is an example algorithm for cleaning your room:
 
 ```
 sequence:
@@ -153,34 +154,30 @@ sequence:
   </div>
   <div class="hint-item">
     <button class="hint-trigger" aria-expanded="false">💡 What is the difference between a sequence and a loop?</button>
-    <div class="hint-body">A sequence is steps that happen once in order. A loop is a sequence that repeats — either a set number of times, or until a condition becomes true.</div>
+    <div class="hint-body">A sequence happens once in order. A loop repeats either a set number of times or until a condition becomes true.</div>
   </div>
   <div class="hint-item">
     <button class="hint-trigger" aria-expanded="false">💡 Write a conditional for crossing the street safely.</button>
     <div class="hint-body">
-
-````
-One good answer:
-```
-if the light is green and no cars are coming:
-    walk across
-else:
-    wait on the pavement
-```
-</div>
-````
-
+    One good answer:
+    ```
+    if the light is green and no cars are coming:
+        walk across
+    else:
+        wait on the pavement
+    ```
+    </div>
   </div>
 </div>
 
-## Going Further
+## Keep Exploring
 
-* Write an algorithm for your favourite game as if you were explaining it to a robot that knows nothing.
-* Try [Scratch Jr](https://www.scratchjr.org) on a tablet — it lets you build visual algorithms with colourful blocks.
-* Draw a flowchart for choosing what to have for lunch using at least one loop and one conditional.
+* Write an algorithm for your favourite game as if you were explaining it to a robot.
+* Try [Scratch Jr](https://www.scratchjr.org) on a tablet — build visual algorithms with colourful blocks.
+* Draw a flowchart for choosing what to have for lunch, including at least one loop and one conditional.
 
 ```
 
 
-If you want, I can also **merge the YAML and Markdown into a single file ready to render in VS Code or Jekyll**, so it will render correctly without errors. Do you want me to do that next?
+If you want, I can also **add little icons and emoji headings for loops, conditionals, and sequences** like your example to make it even more visually engaging for K–1 students. Do you want me to do that?
 ```
