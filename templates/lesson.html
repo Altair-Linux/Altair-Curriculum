@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="{{title}} — Altair K-12 Curriculum" />
+  <title>{{title}} | Altair</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;1,9..144,300&family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="{{relativeRoot}}assets/css/main.css" />
+  <link rel="stylesheet" href="{{relativeRoot}}assets/css/lesson.css" />
+
+  <script>
+    (function () {
+      const saved = localStorage.getItem("altair-theme");
+      if (saved === "dark" || (!saved && window.matchMedia("(prefers-color-scheme: dark)").matches)) {
+        document.documentElement.setAttribute("data-theme", "dark");
+      }
+    })();
+  </script>
+</head>
+
+<body>
+  <a class="skip-link" href="#main-content">Skip to main content</a>
+
+  <header class="site-header" role="banner">
+    <div class="header-inner">
+      <a href="{{relativeRoot}}index.html" class="logo" aria-label="Altair Home">
+        <span class="logo-mark" aria-hidden="true">◈</span>
+        <span class="logo-text">Altair</span>
+      </a>
+
+      <div class="header-controls">
+        <button class="search-trigger" aria-label="Open search" aria-expanded="false" aria-controls="search-modal">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+          </svg>
+          <span>Search</span>
+          <kbd aria-label="Keyboard shortcut: slash">/</kbd>
+        </button>
+
+        <button class="theme-toggle" aria-label="Toggle dark mode" aria-pressed="false">
+          <span class="icon-sun" aria-hidden="true">☀</span>
+          <span class="icon-moon" aria-hidden="true">◑</span>
+        </button>
+
+        <button class="nav-toggle" aria-label="Toggle navigation" aria-expanded="false" aria-controls="sidebar">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <div class="layout">
+    <nav id="sidebar" class="sidebar" aria-label="Curriculum navigation" role="navigation">
+      <div class="sidebar-inner">
+        <div class="sidebar-search">
+          <input
+            type="search"
+            id="sidebar-search-input"
+            placeholder="Filter lessons…"
+            aria-label="Filter sidebar navigation"
+            autocomplete="off"
+          />
+        </div>
+        <div id="nav-tree" role="tree" aria-label="Curriculum sections"></div>
+      </div>
+    </nav>
+
+    <main id="main-content" class="main-content" tabindex="-1">
+      {{#unless isIndex}}
+      <nav class="breadcrumb" aria-label="Breadcrumb">
+        <ol>
+          {{#each breadcrumbs}}
+          <li{{#if current}} aria-current="page"{{/if}}>
+            {{#unless current}}<a href="{{url}}">{{label}}</a>{{/unless}}
+            {{#if current}}<span>{{label}}</span>{{/if}}
+          </li>
+          {{/each}}
+        </ol>
+      </nav>
+
+      <article class="lesson-article" itemscope itemtype="https://schema.org/LearningResource">
+        <header class="lesson-header">
+          {{#if type}}
+          <span class="type-badge type-{{type}}" role="note">{{type}}</span>
+          {{/if}}
+
+          <h1 class="lesson-title" itemprop="name">{{title}}</h1>
+
+          <div class="lesson-meta" role="list" aria-label="Lesson metadata">
+            {{#if grade}}
+            <div class="meta-chip" role="listitem">
+              <span class="meta-icon" aria-hidden="true">🎓</span>
+              <span>Grade {{grade}}</span>
+            </div>
+            {{/if}}
+            {{#if difficulty}}
+            <div class="meta-chip meta-difficulty-{{difficulty}}" role="listitem">
+              <span class="meta-icon" aria-hidden="true">⚡</span>
+              <span>{{difficulty}}</span>
+            </div>
+            {{/if}}
+            {{#if estimatedTime}}
+            <div class="meta-chip" role="listitem">
+              <span class="meta-icon" aria-hidden="true">⏱</span>
+              <span>{{estimatedTime}}</span>
+            </div>
+            {{/if}}
+          </div>
+
+          {{#if tags.length}}
+          <div class="lesson-tags" aria-label="Tags">
+            {{#each tags}}
+            <span class="tag">{{this}}</span>
+            {{/each}}
+          </div>
+          {{/if}}
+
+          {{#if prerequisites.length}}
+          <div class="prerequisites" role="note">
+            <strong>Prerequisites:</strong>
+            <ul aria-label="Prerequisites list">
+              {{#each prerequisites}}
+              <li>{{this}}</li>
+              {{/each}}
+            </ul>
+          </div>
+          {{/if}}
+        </header>
+
+        <div class="lesson-body" itemprop="text">
+          {{{content}}}
+        </div>
+
+        <footer class="lesson-footer">
+          <div class="completion-block">
+            <button class="mark-complete-btn" aria-pressed="false" data-url="{{currentUrl}}">
+              <span class="btn-icon" aria-hidden="true">✓</span>
+              <span class="btn-text">Mark as Complete</span>
+            </button>
+            <div class="xp-reward" aria-live="polite"></div>
+          </div>
+          <nav class="lesson-nav" aria-label="Previous and next lesson">
+            <a id="prev-lesson" class="lesson-nav-btn" hidden>← Previous</a>
+            <a id="next-lesson" class="lesson-nav-btn lesson-nav-next" hidden>Next →</a>
+          </nav>
+        </footer>
+      </article>
+      {{/unless}}
+
+      {{#if isIndex}}
+      <section class="index-hero">
+        <h1 class="hero-title">Altair <em>K–12</em><br/>Curriculum</h1>
+        <p class="hero-subtitle">A free, open-source, community-driven computer science curriculum for every grade.</p>
+        <div id="curriculum-grid" class="curriculum-grid" aria-label="Curriculum sections"></div>
+      </section>
+      {{/if}}
+    </main>
+
+    <aside class="toc-panel" aria-label="On this page" role="complementary">
+      <div class="toc-inner">
+        <p class="toc-label">On this page</p>
+        <nav id="toc" aria-label="Table of contents"></nav>
+        <div class="progress-track" aria-label="Reading progress">
+          <div id="reading-progress" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <div id="search-modal" class="search-modal" role="dialog" aria-modal="true" aria-label="Search" hidden>
+    <div class="search-backdrop"></div>
+    <div class="search-panel">
+      <div class="search-input-wrap">
+        <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+        <input
+          type="search"
+          id="search-input"
+          class="search-field"
+          placeholder="Search lessons, tags, topics…"
+          aria-label="Search curriculum"
+          autocomplete="off"
+          spellcheck="false"
+        />
+        <kbd class="search-esc" aria-label="Press Escape to close">Esc</kbd>
+      </div>
+      <div id="search-results" class="search-results" role="listbox" aria-label="Search results"></div>
+      <div class="search-footer">
+        <span>↑↓ navigate</span>
+        <span>↵ open</span>
+        <span>esc close</span>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast-container" class="toast-container" aria-live="polite" aria-atomic="true"></div>
+
+  <script>window.__NAV_JSON__ = {{{navJson}}};</script>
+  <script>window.__CURRENT_URL__ = "{{currentUrl}}";</script>
+  <script>window.__RELATIVE_ROOT__ = "{{relativeRoot}}";</script>
+  <script>window.__IS_INDEX__ = {{#if isIndex}}true{{else}}false{{/if}};</script>
+
+  <script src="{{relativeRoot}}assets/js/nav.js" defer></script>
+  <script src="{{relativeRoot}}assets/js/search.js" defer></script>
+  <script src="{{relativeRoot}}assets/js/lesson.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js" defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js" defer></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css" />
+</body>
+</html>
