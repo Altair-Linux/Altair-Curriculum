@@ -1,0 +1,31 @@
+{
+  "name": "altair-k12",
+  "version": "1.0.0",
+  "description": "Altair K-12 open-source curriculum static site generator",
+  "license": "MIT",
+  "private": false,
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "scripts": {
+    "build": "node scripts/generate.js",
+    "watch": "nodemon --watch content --watch templates --watch assets --ext md,html,css,js --exec \"node scripts/generate.js\"",
+    "serve": "node scripts/serve.js",
+    "dev": "npm run build && concurrently \"npm run watch\" \"npm run serve\"",
+    "lint:md": "markdownlint \"content/**/*.md\"",
+    "test": "node scripts/test.js",
+    "validate": "node scripts/validate.js",
+    "clean": "node -e \"const fs=require('fs');fs.rmSync('dist',{recursive:true,force:true});console.log('dist/ removed');\"",
+    "prebuild": "npm run clean"
+  },
+  "dependencies": {
+    "gray-matter": "^4.0.3",
+    "handlebars": "^4.7.8",
+    "marked": "^12.0.0"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2",
+    "markdownlint-cli": "^0.39.0",
+    "nodemon": "^3.1.0"
+  }
+}
