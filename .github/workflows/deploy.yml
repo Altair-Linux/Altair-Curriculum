@@ -31,43 +31,61 @@ permissions:
   id-token: write
 
 env:
-  NODE_VERSION: "20"
+  NODE_VERSION: "24"
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
   detect-changes:
     name: Detect Changed Files
     runs-on: ubuntu-latest
     outputs:
-      content_changed: ${{ steps.filter.outputs.content }}
-      assets_changed: ${{ steps.filter.outputs.assets }}
-      scripts_changed: ${{ steps.filter.outputs.scripts }}
-      any_changed: ${{ steps.filter.outputs.content == 'true' || steps.filter.outputs.assets == 'true' || steps.filter.outputs.scripts == 'true' }}
+      content_changed: ${{ steps.diff.outputs.content_changed }}
+      assets_changed: ${{ steps.diff.outputs.assets_changed }}
+      scripts_changed: ${{ steps.diff.outputs.scripts_changed }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 2
 
-      - name: Filter changed paths
-        id: filter
-        uses: dorny/paths-filter@v3
-        with:
-          filters: |
-            content:
-              - 'content/**/*.md'
-            assets:
-              - 'assets/**'
-              - 'templates/**'
-              - 'public/**'
-            scripts:
-              - 'scripts/**'
-              - 'package.json'
-
-      - name: Report changes
+      - name: Detect changed paths via git diff
+        id: diff
         run: |
-          echo "Content changed: ${{ steps.filter.outputs.content }}"
-          echo "Assets changed:  ${{ steps.filter.outputs.assets }}"
-          echo "Scripts changed: ${{ steps.filter.outputs.scripts }}"
+          BASE=${{ github.event.before }}
+          if [ -z "$BASE" ] || ! git cat-file -e "$BASE" 2>/dev/null; then
+            BASE=$(git rev-parse HEAD~1 2>/dev/null || echo "")
+          fi
+
+          if [ -z "$BASE" ]; then
+            echo "content_changed=true"  >> "$GITHUB_OUTPUT"
+            echo "assets_changed=true"   >> "$GITHUB_OUTPUT"
+            echo "scripts_changed=true"  >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          CHANGED=$(git diff --name-only "$BASE" HEAD)
+
+          echo "$CHANGED"
+
+          content_changed=false
+          assets_changed=false
+          scripts_changed=false
+
+          while IFS= read -r file; do
+            case "$file" in
+              content/*.md|content/**/*.md) content_changed=true ;;
+              assets/**|templates/**|public/**) assets_changed=true ;;
+              scripts/**|package.json) scripts_changed=true ;;
+            esac
+          done <<< "$CHANGED"
+
+          echo "content_changed=$content_changed"  >> "$GITHUB_OUTPUT"
+          echo "assets_changed=$assets_changed"    >> "$GITHUB_OUTPUT"
+          echo "scripts_changed=$scripts_changed"  >> "$GITHUB_OUTPUT"
+
+          echo "Content changed : $content_changed"
+          echo "Assets changed  : $assets_changed"
+          echo "Scripts changed : $scripts_changed"
 
   build:
     name: Build Site
@@ -81,10 +99,9 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: "npm"
 
       - name: Install dependencies
-        run: npm ci
+        run: npm install
 
       - name: List content files
         run: |
@@ -206,10 +223,9 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: "npm"
 
       - name: Install dependencies
-        run: npm ci
+        run: npm install
 
       - name: Build
         run: npm run build
@@ -271,10 +287,9 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: "npm"
 
       - name: Install dependencies
-        run: npm ci
+        run: npm install
 
       - name: Run markdownlint
         run: |
