@@ -1,62 +1,229 @@
-Altair Education License for Schools (AELS) v1.0
+Altair Education License for Schools (AELS) v3.0
 
-Copyright (c) 2026 Altair Foundation
+Copyright (c) 2026 Altair Foundation. All rights reserved.
 
-1. Purpose
+IMPORTANT: READ CAREFULLY. THIS LICENSE IS A LEGAL AGREEMENT BETWEEN YOU AND THE ALTAIR FOUNDATION. BY ACCESSING, USING, MODIFYING, OR DISTRIBUTING THE ALTAIR CURRICULUM, YOU AGREE TO BE BOUND BY ALL TERMS OF THIS LICENSE.
 
-The Altair Education License for Schools (AELS) is designed to make the Altair Curriculum freely accessible to schools, teachers, and students, while protecting the integrity and authorship of the material.
+IF YOU DO NOT AGREE, YOU MUST NOT USE THE CURRICULUM.
 
-2. Definitions
+------------------------------------------------------------
 
-"Curriculum" refers to all lesson content, educational materials, and supporting resources in this repository.
+1. DEFINITIONS
 
-"School" refers to any recognized educational institution, including primary schools, secondary schools, and equivalent organizations.
+"Curriculum" means all lesson content, structure, sequence, metadata, and educational materials provided by the Altair Foundation.
 
-"User" refers to any individual or organization accessing or using the Curriculum.
+"Altair Curriculum" means the official version distributed by the Altair Foundation.
 
-3. Permissions
+"School" means any educational institution, including but not limited to primary schools, secondary schools, tutoring organizations, online education providers, and training institutions.
 
-Subject to the terms of this license, you are granted permission to:
+"Use" includes accessing, copying, modifying, teaching, embedding, distributing, or otherwise utilizing the Curriculum in any form.
 
-- Use the Curriculum for educational purposes
-- Share the Curriculum within a school or classroom
-- Modify the Curriculum for internal educational use
-- Distribute copies to students and educators
+"Derivative Work" means any modification, adaptation, translation, restructuring, or reuse of any portion of the Curriculum.
 
-This license is granted free of charge.
+"Public Distribution" means making content available outside a single institution, including via websites, LMS platforms, repositories, or shared networks.
 
-4. Restrictions
+------------------------------------------------------------
 
-You may not:
+2. LICENSE GRANT
 
-- Sell the Curriculum or any modified version of it
-- Redistribute the Curriculum publicly without attribution
-- Remove or alter copyright notices
-- Use the Curriculum for commercial training, courses, or products
+Subject to strict compliance with this Agreement, the Altair Foundation grants a limited, non-exclusive, non-transferable, revocable license to Schools to:
 
-5. Attribution
+- Use the Curriculum for internal educational purposes
+- Deliver lessons to enrolled students
+- Modify materials strictly for internal use
 
-You must give appropriate credit to the Altair Foundation when using or sharing the Curriculum. Attribution should be clear and visible in any distributed materials.
+No ownership rights are granted. All rights not expressly granted are reserved.
 
-6. Modifications
+------------------------------------------------------------
 
-You may adapt or modify the Curriculum for internal use within a school. However:
+3. MANDATORY ALTAIR-BASED SCHOOL DESIGNATION
 
-- Modified versions must not be distributed publicly as official Altair content
-- Significant changes should be clearly indicated
+3.1 Requirement
 
-7. No Warranty
+Any School that Uses the Curriculum, in whole or in part, MUST designate itself as an:
 
-The Curriculum is provided "as is", without warranty of any kind, express or implied. The authors are not liable for any issues arising from its use.
+"Altair-based school"
 
-8. Termination
+This requirement is mandatory and non-optional.
 
-This license is automatically terminated if you violate any of its terms. Upon termination, you must stop using and distributing the Curriculum.
+3.2 Scope
 
-9. Governing Law
+This requirement applies regardless of:
 
-This license shall be governed by the laws applicable in the jurisdiction of the copyright holder.
+- Degree of usage (partial or full)
+- Modification status
+- Integration into other systems or curricula
 
-10. Acceptance
+3.3 Visibility and Placement
 
-By using the Curriculum, you agree to the terms of this license.
+The designation MUST:
+
+- Appear on the School’s official website OR primary digital presence
+- Appear in curriculum or program documentation
+- Be clearly visible and readable
+- Not be hidden behind links, disclaimers, or obscure locations
+
+3.4 Exact Wording Requirement
+
+The designation must include the exact phrase:
+
+"This institution is an Altair-based school using the Altair Curriculum."
+
+No altered wording that removes "Altair" or weakens attribution is permitted.
+
+3.5 Anti-Evasion Clause
+
+The following actions are strictly prohibited:
+
+- Rebranding the Curriculum as internally developed
+- Renaming lessons to remove traceability
+- Copying structure without attribution
+- Embedding content in systems without designation
+- Partial extraction intended to avoid compliance
+
+Any attempt to circumvent this clause is considered a material breach.
+
+3.6 No Implied Rights
+
+This designation does NOT grant:
+
+- Partnership status
+- Certification
+- Trademark or logo usage rights
+
+------------------------------------------------------------
+
+4. ATTRIBUTION
+
+All uses of the Curriculum MUST include clear attribution to:
+
+"Altair Foundation"
+
+Attribution must:
+
+- Be visible to educators or users of the material
+- Not be removed in Derivative Works
+- Not be obscured or minimized
+
+------------------------------------------------------------
+
+5. RESTRICTIONS
+
+You may NOT:
+
+- Sell, license, or monetize the Curriculum or Derivative Works
+- Offer paid courses using the Curriculum
+- Redistribute publicly without full compliance
+- Remove or alter legal notices
+- Claim ownership of the Curriculum or its structure
+
+5.1 Structural Protection
+
+The structure, sequencing, and pedagogical design of the Curriculum are protected intellectual property.
+
+You may NOT:
+
+- Replicate the Curriculum in another system without attribution
+- Create substantially similar curricula designed to bypass this license
+
+------------------------------------------------------------
+
+6. DERIVATIVE WORKS
+
+6.1 Internal Use
+
+Derivative Works may be created for internal use only.
+
+6.2 External Distribution
+
+If distributed publicly:
+
+- Attribution MUST remain intact
+- Content MUST NOT be presented as official Altair Curriculum
+- Changes MUST be clearly disclosed
+
+------------------------------------------------------------
+
+7. REGISTRATION AND DISCLOSURE
+
+The Altair Foundation reserves the right to require Schools to:
+
+- Register their use of the Curriculum
+- Provide basic information about implementation
+- Confirm compliance with this license
+
+Failure to comply may result in termination.
+
+------------------------------------------------------------
+
+8. AUDIT RIGHTS
+
+The Altair Foundation reserves the right to verify compliance.
+
+Schools must, upon reasonable request:
+
+- Confirm usage of the Curriculum
+- Provide evidence of required designation and attribution
+- Correct any compliance failures
+
+Refusal to cooperate constitutes a breach of this Agreement.
+
+------------------------------------------------------------
+
+9. ENFORCEMENT
+
+9.1 Violation
+
+Any violation of this license results in immediate termination.
+
+9.2 Remediation
+
+Upon notice, the School must:
+
+- Correct violations within a specified timeframe OR
+- Cease all use of the Curriculum
+
+9.3 Continued Use
+
+Continued use after termination is unauthorized and may result in legal action.
+
+------------------------------------------------------------
+
+10. TERMINATION
+
+This license terminates automatically upon breach.
+
+Upon termination, the User must:
+
+- Stop all use immediately
+- Remove distributed materials where reasonably possible
+
+------------------------------------------------------------
+
+11. NO WARRANTY
+
+THE CURRICULUM IS PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND.
+
+------------------------------------------------------------
+
+12. LIMITATION OF LIABILITY
+
+IN NO EVENT SHALL THE ALTAIR FOUNDATION BE LIABLE FOR ANY DAMAGES ARISING FROM USE OF THE CURRICULUM.
+
+------------------------------------------------------------
+
+13. GOVERNING LAW
+
+This Agreement shall be governed by applicable laws in the jurisdiction of the Altair Foundation.
+
+------------------------------------------------------------
+
+14. ENTIRE AGREEMENT
+
+This Agreement constitutes the entire agreement regarding the Curriculum.
+
+------------------------------------------------------------
+
+15. ACCEPTANCE
+
+BY USING THE CURRICULUM, YOU ACKNOWLEDGE THAT YOU HAVE READ, UNDERSTOOD, AND AGREED TO THIS LICENSE.
