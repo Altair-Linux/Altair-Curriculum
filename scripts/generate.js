@@ -7,12 +7,9 @@ const path = require("path");
 const ROOT          = path.resolve(__dirname, "..");
 const CONTENT_DIR   = path.join(ROOT, "content");
 const OUTPUT_DIR    = path.join(ROOT, "dist");
-const TEMPLATES_DIR = path.join(ROOT, "templates");
 const ASSETS_DIR    = path.join(ROOT, "assets");
 
-function ensureDir(d) {
-  if (!fs.existsSync(d)) fs.mkdirSync(d, { recursive: true });
-}
+function ensureDir(d) { if (!fs.existsSync(d)) fs.mkdirSync(d, { recursive: true }); }
 
 function copyDir(src, dest) {
   ensureDir(dest);
@@ -33,7 +30,6 @@ function collectMd(dir) {
   return out;
 }
 
-// ── frontmatter parser ───────────────────────────────────────────────────────
 function parseFm(raw) {
   if (!raw.startsWith("---")) return { data: {}, content: raw };
   const end = raw.indexOf("\n---", 3);
@@ -72,15 +68,12 @@ function parseFm(raw) {
   return { data, content };
 }
 
-// ── markdown renderer ────────────────────────────────────────────────────────
 function md(src) {
   let h = src;
-  // fenced code blocks
   h = h.replace(/```(\w*)\n([\s\S]*?)```/g, (_, lang, code) => {
     const esc = code.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
     return `<pre class="code-block" data-lang="${lang||""}"><button class="copy-btn" aria-label="Copy code">Copy</button><code class="language-${lang||"plain"}">${esc}</code></pre>`;
   });
-  // headings
   h = h.replace(/^(#{1,6}) (.+)$/gm, (_, hh, txt) => {
     const lvl = hh.length;
     const slug = txt.toLowerCase().replace(/[^\w]+/g,"-").replace(/^-|-$/g,"");
@@ -88,7 +81,6 @@ function md(src) {
   });
   h = h.replace(/^---$/gm, "<hr>");
   h = h.replace(/^>\s+(.+)$/gm, "<blockquote><p>$1</p></blockquote>");
-  // lists
   h = h.replace(/((?:^[*\-] .+\n?)+)/gm, blk => {
     const items = blk.trim().split("\n").map(l=>`<li>${l.replace(/^[*\-] /,"").trim()}</li>`).join("");
     return `<ul>${items}</ul>`;
@@ -97,7 +89,6 @@ function md(src) {
     const items = blk.trim().split("\n").map(l=>`<li>${l.replace(/^\d+\. /,"").trim()}</li>`).join("");
     return `<ol>${items}</ol>`;
   });
-  // tables
   h = h.replace(/(\|.+\|\n\|[-| :]+\|\n(?:\|.+\|\n?)+)/g, tbl => {
     const rows = tbl.trim().split("\n");
     const ths = rows[0].split("|").slice(1,-1).map(c=>`<th>${c.trim()}</th>`).join("");
@@ -110,7 +101,6 @@ function md(src) {
   h = h.replace(/`([^`]+)`/g, "<code>$1</code>");
   h = h.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img src="$2" alt="$1">');
   h = h.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>');
-  // paragraphs
   h = h.split(/\n{2,}/).map(b => {
     b = b.trim();
     if (!b) return "";
@@ -121,7 +111,6 @@ function md(src) {
   return h;
 }
 
-// ── parse one .md file ───────────────────────────────────────────────────────
 function parseFile(fp) {
   const raw = fs.readFileSync(fp, "utf8");
   const { data: fm, content } = parseFm(raw);
@@ -148,13 +137,17 @@ function parseFile(fp) {
   };
 }
 
-// ── build nav JSON ───────────────────────────────────────────────────────────
 function buildNav(pages) {
   const nav = {};
   for (const p of pages) {
     const key = p.parts.length > 1 ? p.parts[0] : "__root__";
     if (!nav[key]) nav[key] = [];
-    nav[key].push({ title: p.fm.title, url: p.urlPath, grade: p.fm.grade, tags: p.fm.tags, difficulty: p.fm.difficulty, estimatedTime: p.fm.estimatedTime, type: p.fm.type, sequence_position: p.fm.sequence_position });
+    nav[key].push({
+      title: p.fm.title, url: p.urlPath, grade: p.fm.grade,
+      tags: p.fm.tags, difficulty: p.fm.difficulty,
+      estimatedTime: p.fm.estimatedTime, type: p.fm.type,
+      sequence_position: p.fm.sequence_position,
+    });
   }
   for (const k of Object.keys(nav)) {
     nav[k].sort((a,b) => (a.sequence_position||999)-(b.sequence_position||999) || a.title.localeCompare(b.title));
@@ -162,28 +155,34 @@ function buildNav(pages) {
   return nav;
 }
 
-// ── HTML shell ───────────────────────────────────────────────────────────────
-function shell(opts) {
-  const { title, relRoot, navJson, currentUrl, isIndex, body } = opts;
+// ── HTML shell — used for every page ─────────────────────────────────────────
+function shell({ title, relRoot, navJson, currentUrl, isIndex, body }) {
+  const logoSvg = fs.existsSync(path.join(OUTPUT_DIR, "logo.svg"))
+    ? `<img src="${relRoot}logo.svg" alt="Altair logo" class="logo-img" width="28" height="28" />`
+    : `<span class="logo-mark" aria-hidden="true">◈</span>`;
+
   return `<!DOCTYPE html>
 <html lang="en" data-theme="light">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="${title} — Altair K-12 Curriculum" />
   <title>${title} | Altair</title>
+  <link rel="icon" type="image/svg+xml" href="${relRoot}favicon.svg" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;1,9..144,300&family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="${relRoot}assets/css/main.css" />
   <link rel="stylesheet" href="${relRoot}assets/css/lesson.css" />
-  <script>(function(){const s=localStorage.getItem("altair-theme");if(s==="dark"||(!s&&window.matchMedia("(prefers-color-scheme: dark)").matches))document.documentElement.setAttribute("data-theme","dark");})();</script>
+  <script>(function(){var s=localStorage.getItem("altair-theme");if(s==="dark"||(!s&&window.matchMedia("(prefers-color-scheme: dark)").matches))document.documentElement.setAttribute("data-theme","dark");})();</script>
 </head>
 <body>
   <a class="skip-link" href="#main-content">Skip to main content</a>
+
   <header class="site-header" role="banner">
     <div class="header-inner">
       <a href="${relRoot}index.html" class="logo" aria-label="Altair Home">
-        <span class="logo-mark" aria-hidden="true">◈</span>
+        ${logoSvg}
         <span class="logo-text">Altair</span>
       </a>
       <div class="header-controls">
@@ -201,6 +200,7 @@ function shell(opts) {
       </div>
     </div>
   </header>
+
   <div class="layout">
     <nav id="sidebar" class="sidebar" aria-label="Curriculum navigation" role="navigation">
       <div class="sidebar-inner">
@@ -210,9 +210,11 @@ function shell(opts) {
         <div id="nav-tree" role="tree" aria-label="Curriculum sections"></div>
       </div>
     </nav>
+
     <main id="main-content" class="main-content" tabindex="-1">
       ${body}
     </main>
+
     <aside class="toc-panel" aria-label="On this page" role="complementary">
       <div class="toc-inner">
         <p class="toc-label">On this page</p>
@@ -223,6 +225,7 @@ function shell(opts) {
       </div>
     </aside>
   </div>
+
   <div id="search-modal" class="search-modal" role="dialog" aria-modal="true" aria-label="Search" hidden>
     <div class="search-backdrop"></div>
     <div class="search-panel">
@@ -235,37 +238,40 @@ function shell(opts) {
       <div class="search-footer"><span>↑↓ navigate</span><span>↵ open</span><span>esc close</span></div>
     </div>
   </div>
+
   <div id="toast-container" class="toast-container" aria-live="polite" aria-atomic="true"></div>
+
   <script>window.__NAV_JSON__ = ${navJson};</script>
   <script>window.__CURRENT_URL__ = "${currentUrl}";</script>
   <script>window.__RELATIVE_ROOT__ = "${relRoot}";</script>
   <script>window.__IS_INDEX__ = ${isIndex};</script>
+
+  <script src="${relRoot}assets/js/gamification.js" defer></script>
   <script src="${relRoot}assets/js/nav.js" defer></script>
   <script src="${relRoot}assets/js/search.js" defer></script>
   <script src="${relRoot}assets/js/lesson.js" defer></script>
   <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js" defer></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js" defer></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js" defer></script>
 </body>
 </html>`;
 }
 
-// ── lesson page body ─────────────────────────────────────────────────────────
 function lessonBody(page) {
   const fm = page.fm;
   const crumbs = (() => {
     const parts = page.parts.slice(0,-1);
-    const items = [{ label:"Home", url:"/" }];
+    const items = [{ label:"Home", url:"/", current:false }];
     let cum = "";
-    for (const p of parts) { cum += "/" + p; items.push({ label: p.replace(/-/g," "), url: cum }); }
+    for (const p of parts) { cum += "/" + p; items.push({ label: p.replace(/-/g," "), url: cum, current: false }); }
     items.push({ label: fm.title, url: page.urlPath, current: true });
-    return items.map((c,i) => {
+    return items.map(c => {
       const inner = c.current ? `<span>${c.label}</span>` : `<a href="${c.url}">${c.label}</a>`;
-      return `<li${c.current?' aria-current="page"':''}>${inner}</li>`;
+      return `<li${c.current ? ' aria-current="page"' : ""}>${inner}</li>`;
     }).join("");
   })();
 
-  const tags = fm.tags.length ? `<div class="lesson-tags" aria-label="Tags">${fm.tags.map(t=>`<span class="tag">${t}</span>`).join("")}</div>` : "";
+  const tags    = fm.tags.length ? `<div class="lesson-tags" aria-label="Tags">${fm.tags.map(t=>`<span class="tag">${t}</span>`).join("")}</div>` : "";
   const prereqs = fm.prerequisites.length ? `<div class="prerequisites" role="note"><strong>Prerequisites:</strong><ul>${fm.prerequisites.map(p=>`<li>${p}</li>`).join("")}</ul></div>` : "";
 
   return `<nav class="breadcrumb" aria-label="Breadcrumb"><ol>${crumbs}</ol></nav>
@@ -274,12 +280,11 @@ function lessonBody(page) {
     ${fm.type ? `<span class="type-badge type-${fm.type}" role="note">${fm.type}</span>` : ""}
     <h1 class="lesson-title" itemprop="name">${fm.title}</h1>
     <div class="lesson-meta" role="list" aria-label="Lesson metadata">
-      ${fm.grade ? `<div class="meta-chip" role="listitem"><span class="meta-icon" aria-hidden="true">🎓</span><span>Grade ${fm.grade}</span></div>` : ""}
-      ${fm.difficulty ? `<div class="meta-chip meta-difficulty-${fm.difficulty}" role="listitem"><span class="meta-icon" aria-hidden="true">⚡</span><span>${fm.difficulty}</span></div>` : ""}
-      ${fm.estimatedTime ? `<div class="meta-chip" role="listitem"><span class="meta-icon" aria-hidden="true">⏱</span><span>${fm.estimatedTime}</span></div>` : ""}
+      ${fm.grade        ? `<div class="meta-chip" role="listitem"><span class="meta-icon" aria-hidden="true">🎓</span><span>Grade ${fm.grade}</span></div>` : ""}
+      ${fm.difficulty   ? `<div class="meta-chip meta-difficulty-${fm.difficulty}" role="listitem"><span class="meta-icon" aria-hidden="true">⚡</span><span>${fm.difficulty}</span></div>` : ""}
+      ${fm.estimatedTime? `<div class="meta-chip" role="listitem"><span class="meta-icon" aria-hidden="true">⏱</span><span>${fm.estimatedTime}</span></div>` : ""}
     </div>
-    ${tags}
-    ${prereqs}
+    ${tags}${prereqs}
   </header>
   <div class="lesson-body" itemprop="text">${page.html}</div>
   <footer class="lesson-footer">
@@ -298,7 +303,6 @@ function lessonBody(page) {
 </article>`;
 }
 
-// ── homepage body ────────────────────────────────────────────────────────────
 function indexBody() {
   return `<section class="index-hero">
   <h1 class="hero-title">Altair <em>K–12</em><br/>Curriculum</h1>
@@ -307,7 +311,6 @@ function indexBody() {
 </section>`;
 }
 
-// ── section index body ───────────────────────────────────────────────────────
 function sectionBody(sectionKey, pages) {
   const META = {
     "k-2":      { label:"Kindergarten – Grade 2", icon:"🌱" },
@@ -336,55 +339,40 @@ function sectionBody(sectionKey, pages) {
 </section>`;
 }
 
-// ── main ─────────────────────────────────────────────────────────────────────
 function main() {
   console.log("🚀 Altair K-12 Generator starting...");
   ensureDir(OUTPUT_DIR);
-  if (fs.existsSync(path.join(ROOT,"public"))) copyDir(path.join(ROOT,"public"), OUTPUT_DIR);
-  if (fs.existsSync(ASSETS_DIR)) copyDir(ASSETS_DIR, path.join(OUTPUT_DIR,"assets"));
+  const publicDir = path.join(ROOT, "public");
+  if (fs.existsSync(publicDir)) copyDir(publicDir, OUTPUT_DIR);
+  if (fs.existsSync(ASSETS_DIR)) copyDir(ASSETS_DIR, path.join(OUTPUT_DIR, "assets"));
 
-  const pages = collectMd(CONTENT_DIR).map(parseFile);
-  const nav   = buildNav(pages);
+  const pages   = collectMd(CONTENT_DIR).map(parseFile);
+  const nav     = buildNav(pages);
   const navJson = JSON.stringify(nav);
 
-  fs.writeFileSync(path.join(OUTPUT_DIR,"nav.json"), JSON.stringify(nav,null,2));
+  fs.writeFileSync(path.join(OUTPUT_DIR, "nav.json"), JSON.stringify(nav, null, 2));
   console.log(`📋 nav.json → ${pages.length} pages`);
 
-  // lesson pages
   for (const p of pages) {
     const relRoot = "../".repeat(p.parts.length - 1) || "./";
     ensureDir(path.dirname(p.outputPath));
-    fs.writeFileSync(p.outputPath, shell({
-      title: p.fm.title, relRoot, navJson,
-      currentUrl: p.urlPath, isIndex: false,
-      body: lessonBody(p),
-    }));
+    fs.writeFileSync(p.outputPath, shell({ title: p.fm.title, relRoot, navJson, currentUrl: p.urlPath, isIndex: false, body: lessonBody(p) }));
     console.log(`✅ ${p.urlPath}`);
   }
 
-  // homepage
-  fs.writeFileSync(path.join(OUTPUT_DIR,"index.html"), shell({
-    title: "Altair K-12 Curriculum", relRoot: "./", navJson,
-    currentUrl: "/", isIndex: true, body: indexBody(),
-  }));
+  fs.writeFileSync(path.join(OUTPUT_DIR, "index.html"), shell({ title: "Altair K-12 Curriculum", relRoot: "./", navJson, currentUrl: "/", isIndex: true, body: indexBody() }));
   console.log("🏠 index.html");
 
-  // section index pages
   for (const [key, entries] of Object.entries(nav)) {
     if (key === "__root__") continue;
     const sectionDir = path.join(OUTPUT_DIR, key);
     ensureDir(sectionDir);
     const fullPages = entries.map(e => pages.find(p => p.urlPath === e.url)).filter(Boolean);
-    fs.writeFileSync(path.join(sectionDir,"index.html"), shell({
-      title: key + " — Altair", relRoot: "../", navJson,
-      currentUrl: "/" + key + "/", isIndex: false,
-      body: sectionBody(key, fullPages),
-    }));
+    fs.writeFileSync(path.join(sectionDir, "index.html"), shell({ title: key + " — Altair", relRoot: "../", navJson, currentUrl: "/" + key + "/", isIndex: false, body: sectionBody(key, fullPages) }));
     console.log(`📂 ${key}/index.html`);
   }
 
-  // search index
-  fs.writeFileSync(path.join(OUTPUT_DIR,"search-index.json"), JSON.stringify(
+  fs.writeFileSync(path.join(OUTPUT_DIR, "search-index.json"), JSON.stringify(
     pages.map(p => ({ title: p.fm.title, url: p.urlPath, tags: p.fm.tags, grade: p.fm.grade, difficulty: p.fm.difficulty, type: p.fm.type, excerpt: p.raw.slice(0,200).replace(/[#*`>\-\[\]]/g,"").trim() })),
     null, 2
   ));
