@@ -6,7 +6,7 @@
 
   const SECTION_ICONS = {
     "k-2": "🌱", "3-5": "🌿", "6-8": "🔬",
-    "9-12": "🚀", "projects": "🛠", "exercises": "✏️", "__root__": "📄",
+    "9-12": "🚀", "projects": "🛠", "exercises": "✏️", "__root__": "📄", "schools": "🏫",
   };
 
   function sectionIcon(key) {
@@ -218,6 +218,7 @@
       "6-8":      { icon: "🔬", label: "Grades 6 – 8",           color: "#7a2da0" },
       "9-12":     { icon: "🚀", label: "Grades 9 – 12",          color: "#c8521a" },
       "projects": { icon: "🛠",  label: "Projects",               color: "#a07a00" },
+      "schools":  { icon: "🏫",  label: "Schools Using Altair",   color: "#2a6496" },
       "exercises":{ icon: "✏️", label: "Exercises",              color: "#1a5a7a" },
     };
 
