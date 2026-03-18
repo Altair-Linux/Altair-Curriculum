@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 "use strict";
 
+const schoolsBody = require("./schools-body.js");
 const fs   = require("fs");
 const path = require("path");
 
@@ -318,22 +319,29 @@ function sectionBody(sectionKey, pages) {
     "6-8":      { label:"Grades 6 – 8",           icon:"🔬" },
     "9-12":     { label:"Grades 9 – 12",          icon:"🚀" },
     "projects": { label:"Projects",               icon:"🛠"  },
+    "schools":  { label:"Schools Using Altair",   icon:"🏫"  },
   };
   const meta = META[sectionKey] || { label: sectionKey.replace(/-/g," "), icon:"📂" };
   const cards = pages.map(p => {
-    const tags = p.fm.tags.map(t=>`<span class="tag">${t}</span>`).join("");
-    const info = [p.fm.grade?`Grade ${p.fm.grade}`:"", p.fm.estimatedTime||"", p.fm.difficulty||""].filter(Boolean).join(" · ");
+    const tags = (p.fm.tags||[]).map(t=>`<span class="tag">${t}</span>`).join("");
+    const infoParts = [
+      p.fm.grade && p.fm.grade !== "null" ? `Grade ${p.fm.grade}` : "",
+      p.fm.estimatedTime && p.fm.estimatedTime !== "null" ? p.fm.estimatedTime : "",
+      p.fm.difficulty && p.fm.difficulty !== "null" ? p.fm.difficulty : ""
+    ].filter(Boolean);
+    const info = infoParts.join(" · ");
     return `<a class="section-lesson-card" href="../${p.urlPath.replace(/^\//,"")}">
   <div class="slc-title">${p.fm.title}</div>
   ${info?`<div class="slc-meta">${info}</div>`:""}
   ${tags?`<div class="slc-tags">${tags}</div>`:""}
 </a>`;
   }).join("\n");
+  const countWord = sectionKey === "schools" ? "page" : "lesson";
   return `<section class="section-index">
   <header class="section-index-header">
     <span class="section-index-icon">${meta.icon}</span>
     <h1 class="section-index-title">${meta.label}</h1>
-    <p class="section-index-count">${pages.length} lesson${pages.length!==1?"s":""}</p>
+    <p class="section-index-count">${pages.length} ${countWord}${pages.length!==1?"s":""}</p>
   </header>
   <div class="section-lesson-grid">${cards}</div>
 </section>`;
@@ -353,10 +361,18 @@ function main() {
   fs.writeFileSync(path.join(OUTPUT_DIR, "nav.json"), JSON.stringify(nav, null, 2));
   console.log(`📋 nav.json → ${pages.length} pages`);
 
+  // Load schools data once for any schools-type pages
+  const schoolsDataPath = path.join(OUTPUT_DIR, 'certified-schools.json');
+  let schoolsData = { schools: [] };
+  if (fs.existsSync(schoolsDataPath)) {
+    try { schoolsData = JSON.parse(fs.readFileSync(schoolsDataPath, 'utf8')); } catch(e) {}
+  }
+
   for (const p of pages) {
     const relRoot = "../".repeat(p.parts.length - 1) || "./";
     ensureDir(path.dirname(p.outputPath));
-    fs.writeFileSync(p.outputPath, shell({ title: p.fm.title, relRoot, navJson, currentUrl: p.urlPath, isIndex: false, body: lessonBody(p) }));
+    const body = p.fm.type === 'schools' ? schoolsBody(schoolsData) : lessonBody(p);
+    fs.writeFileSync(p.outputPath, shell({ title: p.fm.title, relRoot, navJson, currentUrl: p.urlPath, isIndex: false, body }));
     console.log(`✅ ${p.urlPath}`);
   }
 
