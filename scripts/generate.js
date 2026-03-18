@@ -162,7 +162,7 @@ function shell({ title, relRoot, navJson, currentUrl, isIndex, body }) {
     : `<span class="logo-mark" aria-hidden="true">◈</span>`;
 
   return `<!DOCTYPE html>
-<html lang="en" data-theme="light">
+<html lang="en" data-theme="dark">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -174,7 +174,7 @@ function shell({ title, relRoot, navJson, currentUrl, isIndex, body }) {
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;1,9..144,300&family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="${relRoot}assets/css/main.css" />
   <link rel="stylesheet" href="${relRoot}assets/css/lesson.css" />
-  <script>(function(){var s=localStorage.getItem("altair-theme");if(s==="dark"||(!s&&window.matchMedia("(prefers-color-scheme: dark)").matches))document.documentElement.setAttribute("data-theme","dark");})();</script>
+  <script>(function(){var s=localStorage.getItem("altair-theme");document.documentElement.setAttribute("data-theme",s||"dark");})();</script>
 </head>
 <body>
   <a class="skip-link" href="#main-content">Skip to main content</a>
