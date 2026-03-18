@@ -20,15 +20,12 @@ letter-spacing: 0.08em;
 margin-bottom: var(--space-4);
 }
 
-.type-lesson    { background: #e8f4fd; color: #1a5fa0; }
-.type-project   { background: #fdf0e8; color: #a03e12; }
-.type-exercise  { background: #edf8f0; color: #1a6640; }
-.type-quiz      { background: #f8edf8; color: #7a1a9a; }
+.type-lesson    { background: #0d1f30; color: #4a9fd4; }
+.type-project   { background: #1f0e08; color: #e8723a; }
+.type-exercise  { background: #0a1f12; color: #3a9e6a; }
+.type-quiz      { background: #1a0a2a; color: #b060e0; }
 
-[data-theme="dark"] .type-lesson   { background: #0e1f2e; color: #6ab0e0; }
-[data-theme="dark"] .type-project  { background: #2d1510; color: #e08060; }
-[data-theme="dark"] .type-exercise { background: #0e2018; color: #60c080; }
-[data-theme="dark"] .type-quiz     { background: #20102e; color: #c060e0; }
+
 
 .lesson-title {
 font-family: var(--font-display);
@@ -290,15 +287,12 @@ line-height: 1.6;
 .callout-body { flex: 1; }
 .callout-title { font-weight: 600; margin-bottom: var(--space-1); }
 
-.callout-note    { background: #e8f4fd; border: 1px solid #b3d7f5; }
-.callout-tip     { background: #edf8f0; border: 1px solid #a3d9b3; }
-.callout-warning { background: #fdf6e8; border: 1px solid #f5d87a; }
-.callout-danger  { background: #fdeaea; border: 1px solid #f5a0a0; }
+.callout-note    { background: #0a1520; border: 1px solid #1a3a50; }
+.callout-tip     { background: #0a1a10; border: 1px solid #1a4028; }
+.callout-warning { background: #1a1200; border: 1px solid #3a2800; }
+.callout-danger  { background: #1a0808; border: 1px solid #3a1010; }
 
-[data-theme="dark"] .callout-note    { background: #0e1f2e; border-color: #1a3a50; }
-[data-theme="dark"] .callout-tip     { background: #0e2018; border-color: #1a4030; }
-[data-theme="dark"] .callout-warning { background: #2e2008; border-color: #4a3810; }
-[data-theme="dark"] .callout-danger  { background: #2e0e0e; border-color: #4a1a1a; }
+
 
 details.collapsible {
 border: 1px solid var(--border);
@@ -402,19 +396,14 @@ cursor: pointer;
 transition: all var(--transition-normal);
 }
 .mark-complete-btn:hover {
-border-color: #2d7a4f;
-color: #2d7a4f;
-background: #edf8f0;
+border-color: #3a9e6a;
+color: #3a9e6a;
+background: #0a1a10;
 }
 .mark-complete-btn[aria-pressed="true"] {
-background: #edf8f0;
-border-color: #2d7a4f;
-color: #2d7a4f;
-}
-[data-theme="dark"] .mark-complete-btn[aria-pressed="true"] {
-background: #0e2018;
-border-color: #2d7a4f;
-color: #60c080;
+background: #0a1a10;
+border-color: #3a9e6a;
+color: #3a9e6a;
 }
 
 .btn-icon {
