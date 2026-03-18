@@ -113,7 +113,7 @@
       const empty = document.createElement("div");
       empty.style.cssText =
         "text-align:center;padding:2rem 1rem;color:var(--text-muted);font-size:0.9375rem;";
-      empty.textContent = "No results for "" + query + """;
+      empty.textContent = 'No results for "' + query + '"';
       resultsContainer.appendChild(empty);
       return;
     }
