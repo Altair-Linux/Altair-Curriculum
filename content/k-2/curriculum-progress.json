@@ -1,0 +1,40 @@
+{
+  "meta": {
+    "total_lessons": 30,
+    "complete": 30,
+    "in_progress": 0,
+    "not_started": 0
+  },
+  "lessons": [
+    { "id": "k-01", "filename": "content/k-2/k-01-what-is-a-computer.md", "title": "What is a Computer?", "grade": "Kindergarten", "sequence_position": 1, "status": "final", "notes": "" },
+    { "id": "k-02", "filename": "content/k-2/k-02-inputs-and-outputs.md", "title": "Inputs and Outputs", "grade": "Kindergarten", "sequence_position": 2, "status": "final", "notes": "" },
+    { "id": "k-03", "filename": "content/k-2/k-03-following-instructions.md", "title": "Following Instructions", "grade": "Kindergarten", "sequence_position": 3, "status": "final", "notes": "" },
+    { "id": "k-04", "filename": "content/k-2/k-04-patterns-everywhere.md", "title": "Patterns Everywhere", "grade": "Kindergarten", "sequence_position": 4, "status": "final", "notes": "" },
+    { "id": "k-05", "filename": "content/k-2/k-05-sorting-and-grouping.md", "title": "Sorting and Grouping", "grade": "Kindergarten", "sequence_position": 5, "status": "final", "notes": "" },
+    { "id": "k-06", "filename": "content/k-2/k-06-digital-safety.md", "title": "Digital Safety", "grade": "Kindergarten", "sequence_position": 6, "status": "final", "notes": "" },
+    { "id": "k-07", "filename": "content/k-2/k-07-giving-clear-directions.md", "title": "Giving Clear Directions", "grade": "Kindergarten", "sequence_position": 7, "status": "final", "notes": "" },
+    { "id": "k-08", "filename": "content/k-2/k-08-playful-problem-solving.md", "title": "Playful Problem Solving", "grade": "Kindergarten", "sequence_position": 8, "status": "final", "notes": "" },
+    { "id": "y1-01", "filename": "content/k-2/y1-01-data-and-representation.md", "title": "Data and Representation", "grade": "Year 1", "sequence_position": 1, "status": "final", "notes": "" },
+    { "id": "y1-02", "filename": "content/k-2/y1-02-sequencing-and-events.md", "title": "Sequencing and Events", "grade": "Year 1", "sequence_position": 2, "status": "final", "notes": "" },
+    { "id": "y1-03", "filename": "content/k-2/y1-03-loops-and-repeats.md", "title": "Loops and Repeats", "grade": "Year 1", "sequence_position": 3, "status": "final", "notes": "" },
+    { "id": "y1-04", "filename": "content/k-2/y1-04-introduction-to-debugging.md", "title": "Introduction to Debugging", "grade": "Year 1", "sequence_position": 4, "status": "final", "notes": "" },
+    { "id": "y1-05", "filename": "content/k-2/y1-05-block-programming.md", "title": "Introduction to Block Programming", "grade": "Year 1", "sequence_position": 5, "status": "final", "notes": "" },
+    { "id": "y1-06", "filename": "content/k-2/y1-06-patterns-in-nature-and-computers.md", "title": "Patterns in Nature and Computers", "grade": "Year 1", "sequence_position": 6, "status": "final", "notes": "" },
+    { "id": "y1-07", "filename": "content/k-2/y1-07-using-inputs.md", "title": "Using Inputs", "grade": "Year 1", "sequence_position": 7, "status": "final", "notes": "" },
+    { "id": "y1-08", "filename": "content/k-2/y1-08-simple-conditionals.md", "title": "Simple Conditionals", "grade": "Year 1", "sequence_position": 8, "status": "final", "notes": "" },
+    { "id": "y1-09", "filename": "content/k-2/y1-09-creating-instructions-for-others.md", "title": "Creating Instructions for Others", "grade": "Year 1", "sequence_position": 9, "status": "final", "notes": "" },
+    { "id": "y1-10", "filename": "content/k-2/y1-10-digital-citizenship.md", "title": "Digital Citizenship", "grade": "Year 1", "sequence_position": 10, "status": "final", "notes": "" },
+    { "id": "y2-01", "filename": "content/k-2/y2-01-review-sequences-inputs-outputs.md", "title": "Review: Sequences, Inputs, and Outputs", "grade": "Year 2", "sequence_position": 1, "status": "final", "notes": "" },
+    { "id": "y2-02", "filename": "content/k-2/y2-02-variables-as-boxes.md", "title": "Variables as Boxes", "grade": "Year 2", "sequence_position": 2, "status": "final", "notes": "" },
+    { "id": "y2-03", "filename": "content/k-2/y2-03-more-on-loops.md", "title": "More on Loops", "grade": "Year 2", "sequence_position": 3, "status": "final", "notes": "" },
+    { "id": "y2-04", "filename": "content/k-2/y2-04-conditionals-with-examples.md", "title": "Simple Conditionals with Examples", "grade": "Year 2", "sequence_position": 4, "status": "final", "notes": "" },
+    { "id": "y2-05", "filename": "content/k-2/y2-05-algorithms-for-everyday-tasks.md", "title": "Algorithms for Everyday Tasks", "grade": "Year 2", "sequence_position": 5, "status": "final", "notes": "" },
+    { "id": "y2-06", "filename": "content/k-2/y2-06-debugging-strategies.md", "title": "Debugging Strategies", "grade": "Year 2", "sequence_position": 6, "status": "final", "notes": "" },
+    { "id": "y2-07", "filename": "content/k-2/y2-07-data-collection-and-charts.md", "title": "Data Collection and Simple Charts", "grade": "Year 2", "sequence_position": 7, "status": "final", "notes": "" },
+    { "id": "y2-08", "filename": "content/k-2/y2-08-introduction-to-sensors.md", "title": "Introduction to Sensors", "grade": "Year 2", "sequence_position": 8, "status": "final", "notes": "" },
+    { "id": "y2-09", "filename": "content/k-2/y2-09-designing-interactive-story.md", "title": "Designing a Simple Interactive Story", "grade": "Year 2", "sequence_position": 9, "status": "final", "notes": "" },
+    { "id": "y2-10", "filename": "content/k-2/y2-10-patterns-symmetry-algorithms.md", "title": "Patterns, Symmetry, and Algorithms", "grade": "Year 2", "sequence_position": 10, "status": "final", "notes": "" },
+    { "id": "y2-11", "filename": "content/k-2/y2-11-collaborative-projects.md", "title": "Collaborative Projects and Versioning", "grade": "Year 2", "sequence_position": 11, "status": "final", "notes": "" },
+    { "id": "y2-12", "filename": "content/k-2/y2-12-mini-capstone.md", "title": "Mini Capstone: Plan and Present a Computational Project", "grade": "Year 2", "sequence_position": 12, "status": "final", "notes": "" }
+  ]
+}
