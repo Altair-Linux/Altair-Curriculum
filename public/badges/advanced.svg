@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-label="Altair Advanced School">
+  <defs>
+    <radialGradient id="aBg" cx="50%" cy="45%" r="55%">
+      <stop offset="0%" stop-color="#2a1a4e"/>
+      <stop offset="100%" stop-color="#0d0f1a"/>
+    </radialGradient>
+    <filter id="aGlow">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <!-- Outer ring -->
+  <circle cx="60" cy="60" r="56" fill="none" stroke="#a060f0" stroke-width="2.5" opacity="0.8"/>
+  <!-- Inner fill -->
+  <circle cx="60" cy="60" r="52" fill="url(#aBg)"/>
+  <!-- Star shape -->
+  <polygon points="60,28 67,50 90,50 72,63 79,85 60,72 41,85 48,63 30,50 53,50" fill="#a060f0" filter="url(#aGlow)" opacity="0.9"/>
+  <!-- Label -->
+  <text x="60" y="102" text-anchor="middle" font-family="DM Sans, system-ui, sans-serif" font-size="9.5" font-weight="600" letter-spacing="0.08em" fill="#b080e0">ADVANCED</text>
+</svg>
