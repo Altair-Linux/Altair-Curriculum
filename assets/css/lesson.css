@@ -20,10 +20,10 @@ letter-spacing: 0.08em;
 margin-bottom: var(--space-4);
 }
 
-.type-lesson    { background: #0d1f30; color: #4a9fd4; }
-.type-project   { background: #1f0e08; color: #e8723a; }
-.type-exercise  { background: #0a1f12; color: #3a9e6a; }
-.type-quiz      { background: #1a0a2a; color: #b060e0; }
+.type-lesson    { background: #0d1030; color: #7c9fff; }
+.type-project   { background: #160d2e; color: #b06af7; }
+.type-exercise  { background: #091a20; color: #3ab8a0; }
+.type-quiz      { background: #1a0830; color: #d080ff; }
 
 
 
@@ -59,10 +59,10 @@ font-weight: 500;
 
 .meta-icon { font-size: 0.875rem; }
 
-.meta-difficulty-beginner     { border-color: #2d7a4f33; color: var(--diff-beginner); }
-.meta-difficulty-intermediate { border-color: #a07a0033; color: var(--diff-intermediate); }
-.meta-difficulty-advanced     { border-color: #c8521a33; color: var(--diff-advanced); }
-.meta-difficulty-expert       { border-color: #a02d2d33; color: var(--diff-expert); }
+.meta-difficulty-beginner     { border-color: rgba(58,184,160,0.2);  color: var(--diff-beginner); }
+.meta-difficulty-intermediate { border-color: rgba(124,106,247,0.2); color: var(--diff-intermediate); }
+.meta-difficulty-advanced     { border-color: rgba(176,106,247,0.2); color: var(--diff-advanced); }
+.meta-difficulty-expert       { border-color: rgba(224,80,144,0.2);  color: var(--diff-expert); }
 
 .lesson-tags {
 display: flex;
@@ -287,10 +287,10 @@ line-height: 1.6;
 .callout-body { flex: 1; }
 .callout-title { font-weight: 600; margin-bottom: var(--space-1); }
 
-.callout-note    { background: #0a1520; border: 1px solid #1a3a50; }
-.callout-tip     { background: #0a1a10; border: 1px solid #1a4028; }
-.callout-warning { background: #1a1200; border: 1px solid #3a2800; }
-.callout-danger  { background: #1a0808; border: 1px solid #3a1010; }
+.callout-note    { background: #080d20; border: 1px solid #1e2a50; }
+.callout-tip     { background: #081818; border: 1px solid #0e3030; }
+.callout-warning { background: #14100a; border: 1px solid #302010; }
+.callout-danger  { background: #180808; border: 1px solid #380e0e; }
 
 
 
@@ -396,14 +396,14 @@ cursor: pointer;
 transition: all var(--transition-normal);
 }
 .mark-complete-btn:hover {
-border-color: #3a9e6a;
-color: #3a9e6a;
-background: #0a1a10;
+border-color: #7c6af7;
+color: #a99ffe;
+background: #0f0e2a;
 }
 .mark-complete-btn[aria-pressed="true"] {
-background: #0a1a10;
-border-color: #3a9e6a;
-color: #3a9e6a;
+background: #0f0e2a;
+border-color: #7c6af7;
+color: #a99ffe;
 }
 
 .btn-icon {
