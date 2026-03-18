@@ -143,7 +143,7 @@
       const empty = document.createElement("p");
       empty.style.cssText =
         "padding: 12px 16px; font-size: 0.8125rem; color: var(--text-muted);";
-      empty.textContent = "No lessons match "" + filterText + """;
+      empty.textContent = 'No lessons match "' + filterText + '"';
       container.appendChild(empty);
     }
   }
