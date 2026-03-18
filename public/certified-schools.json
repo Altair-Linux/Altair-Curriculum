@@ -1,75 +1,50 @@
 {
   "_readme": {
-    "how_to_add": "Add a new object to the 'schools' array below. Required fields: name, country, type, curriculum_usage, description. Optional: website, featured, badge.",
+    "how_to_add": "Copy one of the example entries below, paste it at the end of the 'schools' array, and fill in your school's real details. Remove the comments. Run node scripts/generate.js to rebuild.",
     "field_definitions": {
       "name": "Full legal name of the school (string, required)",
       "country": "Country name in English (string, required)",
       "type": "Either 'public' or 'private' (string, required)",
-      "curriculum_usage": "Either 'partial', 'majority', or 'full' (string, required)",
+      "curriculum_usage": "Either 'partial', 'majority', or 'full' (string, required)  —  partial = some modules used, majority = most of the curriculum used, full = entire K-12 programme adopted",
       "description": "One to two sentences describing the school and how it uses Altair (string, required)",
-      "website": "Full URL including https:// (string, optional)",
-      "featured": "Set to true to highlight this school in the featured section (boolean, optional, default false)",
-      "badge": "Either 'certified' or 'advanced'. Only set after official review (string, optional)"
+      "website": "Full URL including https:// (string, optional — remove the field entirely if not applicable)",
+      "featured": "Set to true to pin this school to the Featured section at the top of the page (boolean, optional, default false — requires approval)",
+      "badge": "Either 'certified' or 'advanced', or null for no badge (string, optional — only set this after an official review is complete)"
     },
-    "badge_request": "To request a featured listing or badge upgrade, open an issue at github.com/altair-curriculum/registry with the subject line 'Badge Request: [School Name]' and include evidence of curriculum adoption."
+    "badge_request": "To request a Featured listing or a badge upgrade, open an issue at github.com/altair-curriculum/registry with the title 'Badge Request: [School Name]' and attach evidence of curriculum adoption (e.g. timetable screenshots, teacher statement).",
+    "removing_a_school": "Delete the entire object for that school from the 'schools' array and rebuild. The entry will no longer appear on the page.",
+    "example_entry": "See the placeholder entries below. Replace every value that says REPLACE_THIS with your real data."
   },
   "schools": [
     {
-      "name": "Greenfield Primary School",
-      "country": "Australia",
+      "_comment": "EXAMPLE 1 — Featured school with Advanced badge. Replace all REPLACE_THIS values.",
+      "name": "REPLACE_THIS — e.g. Greenfield Primary School",
+      "country": "REPLACE_THIS — e.g. Australia",
       "type": "public",
       "curriculum_usage": "full",
-      "description": "Greenfield Primary has adopted the Altair K-12 curriculum across all year levels, with dedicated computing sessions three times per week. Their students have won regional coding competitions for three consecutive years.",
-      "website": "https://greenfieldprimary.edu.au",
+      "description": "REPLACE_THIS — Write one or two sentences about this school and how it uses the Altair curriculum.",
+      "website": "https://REPLACE_THIS.edu",
       "featured": true,
       "badge": "advanced"
     },
     {
-      "name": "St. Catherine's Academy",
-      "country": "United Kingdom",
+      "_comment": "EXAMPLE 2 — Standard school with Certified badge. Replace all REPLACE_THIS values.",
+      "name": "REPLACE_THIS — e.g. St. Catherine's Academy",
+      "country": "REPLACE_THIS — e.g. United Kingdom",
       "type": "private",
       "curriculum_usage": "majority",
-      "description": "St. Catherine's integrates Altair lessons across Years 1 through 6, supplementing their existing ICT programme. The school has been recognised by the local authority for innovation in digital education.",
-      "website": "https://stcatherines.ac.uk",
-      "featured": true,
-      "badge": "certified"
-    },
-    {
-      "name": "Riverside Community School",
-      "country": "Canada",
-      "type": "public",
-      "curriculum_usage": "partial",
-      "description": "Riverside uses selected Altair modules in their Grades 3 to 5 classes as an introduction to computational thinking. The school is piloting full adoption for the next academic year.",
-      "website": "https://riverside.ca.edu",
-      "featured": false,
-      "badge": null
-    },
-    {
-      "name": "Maplewood International School",
-      "country": "Singapore",
-      "type": "private",
-      "curriculum_usage": "full",
-      "description": "Maplewood runs the complete Altair K-12 programme from Kindergarten through Year 8, making it one of the first international schools in South-East Asia to achieve full Altair adoption.",
-      "website": "https://maplewoodis.edu.sg",
-      "featured": true,
-      "badge": "advanced"
-    },
-    {
-      "name": "Harborview Elementary",
-      "country": "United States",
-      "type": "public",
-      "curriculum_usage": "majority",
-      "description": "Harborview adopted the Altair K-2 and Grades 3-5 curriculum after a successful pilot in 2023. Computing is now embedded across literacy and maths lessons rather than taught as a separate subject.",
+      "description": "REPLACE_THIS — Write one or two sentences about this school and how it uses the Altair curriculum.",
+      "website": "https://REPLACE_THIS.ac.uk",
       "featured": false,
       "badge": "certified"
     },
     {
-      "name": "Thornton School of Excellence",
-      "country": "New Zealand",
+      "_comment": "EXAMPLE 3 — Basic school entry with no badge. Replace all REPLACE_THIS values.",
+      "name": "REPLACE_THIS — e.g. Riverside Community School",
+      "country": "REPLACE_THIS — e.g. Canada",
       "type": "public",
       "curriculum_usage": "partial",
-      "description": "Thornton uses Altair materials in their senior computing elective and is expanding coverage to junior year groups from next term.",
-      "website": "https://thornton.school.nz",
+      "description": "REPLACE_THIS — Write one or two sentences about this school and how it uses the Altair curriculum.",
       "featured": false,
       "badge": null
     }
