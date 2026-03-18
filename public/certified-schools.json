@@ -1,0 +1,77 @@
+{
+  "_readme": {
+    "how_to_add": "Add a new object to the 'schools' array below. Required fields: name, country, type, curriculum_usage, description. Optional: website, featured, badge.",
+    "field_definitions": {
+      "name": "Full legal name of the school (string, required)",
+      "country": "Country name in English (string, required)",
+      "type": "Either 'public' or 'private' (string, required)",
+      "curriculum_usage": "Either 'partial', 'majority', or 'full' (string, required)",
+      "description": "One to two sentences describing the school and how it uses Altair (string, required)",
+      "website": "Full URL including https:// (string, optional)",
+      "featured": "Set to true to highlight this school in the featured section (boolean, optional, default false)",
+      "badge": "Either 'certified' or 'advanced'. Only set after official review (string, optional)"
+    },
+    "badge_request": "To request a featured listing or badge upgrade, open an issue at github.com/altair-curriculum/registry with the subject line 'Badge Request: [School Name]' and include evidence of curriculum adoption."
+  },
+  "schools": [
+    {
+      "name": "Greenfield Primary School",
+      "country": "Australia",
+      "type": "public",
+      "curriculum_usage": "full",
+      "description": "Greenfield Primary has adopted the Altair K-12 curriculum across all year levels, with dedicated computing sessions three times per week. Their students have won regional coding competitions for three consecutive years.",
+      "website": "https://greenfieldprimary.edu.au",
+      "featured": true,
+      "badge": "advanced"
+    },
+    {
+      "name": "St. Catherine's Academy",
+      "country": "United Kingdom",
+      "type": "private",
+      "curriculum_usage": "majority",
+      "description": "St. Catherine's integrates Altair lessons across Years 1 through 6, supplementing their existing ICT programme. The school has been recognised by the local authority for innovation in digital education.",
+      "website": "https://stcatherines.ac.uk",
+      "featured": true,
+      "badge": "certified"
+    },
+    {
+      "name": "Riverside Community School",
+      "country": "Canada",
+      "type": "public",
+      "curriculum_usage": "partial",
+      "description": "Riverside uses selected Altair modules in their Grades 3 to 5 classes as an introduction to computational thinking. The school is piloting full adoption for the next academic year.",
+      "website": "https://riverside.ca.edu",
+      "featured": false,
+      "badge": null
+    },
+    {
+      "name": "Maplewood International School",
+      "country": "Singapore",
+      "type": "private",
+      "curriculum_usage": "full",
+      "description": "Maplewood runs the complete Altair K-12 programme from Kindergarten through Year 8, making it one of the first international schools in South-East Asia to achieve full Altair adoption.",
+      "website": "https://maplewoodis.edu.sg",
+      "featured": true,
+      "badge": "advanced"
+    },
+    {
+      "name": "Harborview Elementary",
+      "country": "United States",
+      "type": "public",
+      "curriculum_usage": "majority",
+      "description": "Harborview adopted the Altair K-2 and Grades 3-5 curriculum after a successful pilot in 2023. Computing is now embedded across literacy and maths lessons rather than taught as a separate subject.",
+      "featured": false,
+      "badge": "certified"
+    },
+    {
+      "name": "Thornton School of Excellence",
+      "country": "New Zealand",
+      "type": "public",
+      "curriculum_usage": "partial",
+      "description": "Thornton uses Altair materials in their senior computing elective and is expanding coverage to junior year groups from next term.",
+      "website": "https://thornton.school.nz",
+      "featured": false,
+      "badge": null
+    }
+  ]
+}
