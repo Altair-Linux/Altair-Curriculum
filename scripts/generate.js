@@ -250,6 +250,70 @@ function generateIndexPage(navJson, templateSrc) {
   });
 }
 
+function generateSectionIndexPage(sectionKey, pages, navJson, templateSrc) {
+  const SECTION_META = {
+    "k-2":      { label: "Kindergarten – Grade 2", icon: "🌱" },
+    "3-5":      { label: "Grades 3 – 5",           icon: "🌿" },
+    "6-8":      { label: "Grades 6 – 8",           icon: "🔬" },
+    "9-12":     { label: "Grades 9 – 12",          icon: "🚀" },
+    "projects": { label: "Projects",               icon: "🛠" },
+    "exercises":{ label: "Exercises",              icon: "✏️" },
+  };
+  const meta = SECTION_META[sectionKey] || { label: sectionKey.replace(/-/g, " "), icon: "📂" };
+
+  const lessonListHtml = pages
+    .sort((a, b) => {
+      const ap = a.frontmatter.sequence_position || a.frontmatter.title;
+      const bp = b.frontmatter.sequence_position || b.frontmatter.title;
+      return ap < bp ? -1 : ap > bp ? 1 : 0;
+    })
+    .map((p) => {
+      const tags = (p.frontmatter.tags || []).map((t) => `<span class="tag">${t}</span>`).join("");
+      const meta2 = [
+        p.frontmatter.grade ? `Grade ${p.frontmatter.grade}` : "",
+        p.frontmatter["estimated-time"] || p.frontmatter.estimatedTime || "",
+        p.frontmatter.difficulty || "",
+      ].filter(Boolean).join(" · ");
+      return `<a class="section-lesson-card" href="../${p.urlPath.replace(/^\//, "")}">
+        <div class="slc-title">${p.frontmatter.title}</div>
+        ${meta2 ? `<div class="slc-meta">${meta2}</div>` : ""}
+        ${tags ? `<div class="slc-tags">${tags}</div>` : ""}
+      </a>`;
+    })
+    .join("\n");
+
+  const bodyHtml = `<section class="section-index">
+  <header class="section-index-header">
+    <span class="section-index-icon" aria-hidden="true">${meta.icon}</span>
+    <h1 class="section-index-title">${meta.label}</h1>
+    <p class="section-index-count">${pages.length} lesson${pages.length !== 1 ? "s" : ""}</p>
+  </header>
+  <div class="section-lesson-grid">
+${lessonListHtml}
+  </div>
+</section>`;
+
+  const template = Handlebars.compile(templateSrc);
+  return template({
+    title: meta.label + " — Altair",
+    navJson: JSON.stringify(navJson),
+    year: new Date().getFullYear(),
+    relativeRoot: "../",
+    isIndex: false,
+    content: bodyHtml,
+    breadcrumbs: [
+      { label: "Home", url: "/" },
+      { label: meta.label, url: "/" + sectionKey + "/", current: true },
+    ],
+    grade: null,
+    tags: [],
+    difficulty: null,
+    prerequisites: [],
+    estimatedTime: null,
+    type: "index",
+  });
+}
+
 function main() {
   console.log("🚀 Altair K-12 Generator starting...");
 
@@ -285,6 +349,19 @@ function main() {
   const indexHtml = generateIndexPage(navJson, templateSrc);
   fs.writeFileSync(path.join(OUTPUT_DIR, "index.html"), indexHtml);
   console.log("🏠 index.html written");
+
+
+  for (const [sectionKey, sectionPages] of Object.entries(navJson)) {
+    if (sectionKey === '__root__' || !sectionPages.length) continue;
+    const sectionDir = path.join(OUTPUT_DIR, sectionKey);
+    ensureDir(sectionDir);
+    const fullPages = sectionPages.map((sp) => {
+      return pages.find((p) => p.urlPath === sp.url) || { frontmatter: sp, urlPath: sp.url };
+    });
+    const sectionIndexHtml = generateSectionIndexPage(sectionKey, fullPages, navJson, templateSrc);
+    fs.writeFileSync(path.join(sectionDir, 'index.html'), sectionIndexHtml);
+    console.log('📂 ' + sectionKey + '/index.html written');
+  }
 
   const searchIndex = pages.map((p) => ({
     title: p.frontmatter.title,
