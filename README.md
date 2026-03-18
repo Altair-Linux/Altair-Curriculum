@@ -361,4 +361,4 @@ docs/<slug>          Documentation only
 ---
 ## Licence
 
-This project is licensed under **ZPL 2.1** and **Zorvia** — you may use, modify, and redistribute the code under their terms.
+This project is licensed under **Altair Education License for Schools (AELS) v1.0** and **Zorvia** — you may use, modify, and redistribute the code under their terms.
