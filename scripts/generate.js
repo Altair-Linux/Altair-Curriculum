@@ -1,384 +1,395 @@
 #!/usr/bin/env node
+"use strict";
 
-const fs = require("fs");
+const fs   = require("fs");
 const path = require("path");
-const { marked } = require("marked");
-const matter = require("gray-matter");
-const Handlebars = require("handlebars");
 
-const ROOT = path.resolve(__dirname, "..");
-const CONTENT_DIR = path.join(ROOT, "content");
-const OUTPUT_DIR = path.join(ROOT, "dist");
+const ROOT          = path.resolve(__dirname, "..");
+const CONTENT_DIR   = path.join(ROOT, "content");
+const OUTPUT_DIR    = path.join(ROOT, "dist");
 const TEMPLATES_DIR = path.join(ROOT, "templates");
-const ASSETS_DIR = path.join(ROOT, "assets");
-const NAV_OUTPUT = path.join(OUTPUT_DIR, "nav.json");
+const ASSETS_DIR    = path.join(ROOT, "assets");
 
-const renderer = new marked.Renderer();
-
-renderer.code = (code, lang) => {
-  const escaped = code
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;");
-  return `<pre class="code-block" data-lang="${lang || ""}"><button class="copy-btn" aria-label="Copy code">Copy</button><code class="language-${lang || "plain"}">${escaped}</code></pre>`;
-};
-
-renderer.heading = (text, level) => {
-  const slug = text.toLowerCase().replace(/[^\w]+/g, "-");
-  return `<h${level} id="${slug}" class="heading-anchor"><a href="#${slug}" aria-hidden="true" tabindex="-1">¶</a>${text}</h${level}>`;
-};
-
-marked.setOptions({ renderer, gfm: true, breaks: false });
-
-function ensureDir(dir) {
-  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+function ensureDir(d) {
+  if (!fs.existsSync(d)) fs.mkdirSync(d, { recursive: true });
 }
 
-function slugify(str) {
-  return str.toLowerCase().replace(/[^\w]+/g, "-").replace(/^-|-$/g, "");
-}
-
-function collectMarkdownFiles(dir, base = dir) {
-  const entries = fs.readdirSync(dir, { withFileTypes: true });
-  const files = [];
-  for (const entry of entries) {
-    const full = path.join(dir, entry.name);
-    if (entry.isDirectory()) {
-      files.push(...collectMarkdownFiles(full, base));
-    } else if (entry.name.endsWith(".md")) {
-      files.push(full);
-    }
+function copyDir(src, dest) {
+  ensureDir(dest);
+  for (const e of fs.readdirSync(src, { withFileTypes: true })) {
+    const s = path.join(src, e.name), d = path.join(dest, e.name);
+    e.isDirectory() ? copyDir(s, d) : fs.copyFileSync(s, d);
   }
-  return files;
 }
 
-function parseFile(filepath) {
-  const raw = fs.readFileSync(filepath, "utf8");
-  const { data: frontmatter, content } = matter(raw);
-  const html = marked.parse(content);
-  const rel = path.relative(CONTENT_DIR, filepath);
+function collectMd(dir) {
+  const out = [];
+  if (!fs.existsSync(dir)) return out;
+  for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
+    const full = path.join(dir, e.name);
+    if (e.isDirectory()) out.push(...collectMd(full));
+    else if (e.name.endsWith(".md")) out.push(full);
+  }
+  return out;
+}
+
+// ── frontmatter parser ───────────────────────────────────────────────────────
+function parseFm(raw) {
+  if (!raw.startsWith("---")) return { data: {}, content: raw };
+  const end = raw.indexOf("\n---", 3);
+  if (end === -1) return { data: {}, content: raw };
+  const block = raw.slice(3, end).trim();
+  const content = raw.slice(end + 4);
+  const data = {};
+  const lines = block.split("\n");
+  let i = 0;
+  while (i < lines.length) {
+    const line = lines[i];
+    if (!line.trim()) { i++; continue; }
+    const ci = line.indexOf(":");
+    if (ci === -1) { i++; continue; }
+    const key = line.slice(0, ci).trim();
+    const rest = line.slice(ci + 1).trim();
+    if (rest === "" || rest === "|" || rest === ">") {
+      const arr = [];
+      i++;
+      while (i < lines.length && /^\s+/.test(lines[i])) {
+        const item = lines[i].trim().replace(/^-\s*/, "").replace(/^["']|["']$/g, "");
+        if (item) arr.push(item);
+        i++;
+      }
+      data[key] = arr;
+      continue;
+    }
+    if (rest.startsWith("[")) {
+      const inner = rest.replace(/^\[|\]$/g, "");
+      data[key] = inner ? inner.split(",").map(s => s.trim().replace(/^["']|["']$/g, "")) : [];
+      i++; continue;
+    }
+    data[key] = rest.replace(/^["']|["']$/g, "");
+    i++;
+  }
+  return { data, content };
+}
+
+// ── markdown renderer ────────────────────────────────────────────────────────
+function md(src) {
+  let h = src;
+  // fenced code blocks
+  h = h.replace(/```(\w*)\n([\s\S]*?)```/g, (_, lang, code) => {
+    const esc = code.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+    return `<pre class="code-block" data-lang="${lang||""}"><button class="copy-btn" aria-label="Copy code">Copy</button><code class="language-${lang||"plain"}">${esc}</code></pre>`;
+  });
+  // headings
+  h = h.replace(/^(#{1,6}) (.+)$/gm, (_, hh, txt) => {
+    const lvl = hh.length;
+    const slug = txt.toLowerCase().replace(/[^\w]+/g,"-").replace(/^-|-$/g,"");
+    return `<h${lvl} id="${slug}" class="heading-anchor"><a href="#${slug}" aria-hidden="true" tabindex="-1">¶</a>${txt}</h${lvl}>`;
+  });
+  h = h.replace(/^---$/gm, "<hr>");
+  h = h.replace(/^>\s+(.+)$/gm, "<blockquote><p>$1</p></blockquote>");
+  // lists
+  h = h.replace(/((?:^[*\-] .+\n?)+)/gm, blk => {
+    const items = blk.trim().split("\n").map(l=>`<li>${l.replace(/^[*\-] /,"").trim()}</li>`).join("");
+    return `<ul>${items}</ul>`;
+  });
+  h = h.replace(/((?:^\d+\. .+\n?)+)/gm, blk => {
+    const items = blk.trim().split("\n").map(l=>`<li>${l.replace(/^\d+\. /,"").trim()}</li>`).join("");
+    return `<ol>${items}</ol>`;
+  });
+  // tables
+  h = h.replace(/(\|.+\|\n\|[-| :]+\|\n(?:\|.+\|\n?)+)/g, tbl => {
+    const rows = tbl.trim().split("\n");
+    const ths = rows[0].split("|").slice(1,-1).map(c=>`<th>${c.trim()}</th>`).join("");
+    const trs = rows.slice(2).map(r=>`<tr>${r.split("|").slice(1,-1).map(c=>`<td>${c.trim()}</td>`).join("")}</tr>`).join("");
+    return `<table><thead><tr>${ths}</tr></thead><tbody>${trs}</tbody></table>`;
+  });
+  h = h.replace(/\*\*\*(.+?)\*\*\*/g, "<strong><em>$1</em></strong>");
+  h = h.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
+  h = h.replace(/\*(.+?)\*/g, "<em>$1</em>");
+  h = h.replace(/`([^`]+)`/g, "<code>$1</code>");
+  h = h.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img src="$2" alt="$1">');
+  h = h.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>');
+  // paragraphs
+  h = h.split(/\n{2,}/).map(b => {
+    b = b.trim();
+    if (!b) return "";
+    if (/^<(h[1-6]|ul|ol|pre|table|blockquote|hr|details|div|section|header|nav|article)/.test(b)) return b;
+    if (b.startsWith("<")) return b;
+    return `<p>${b.replace(/\n/g," ")}</p>`;
+  }).join("\n");
+  return h;
+}
+
+// ── parse one .md file ───────────────────────────────────────────────────────
+function parseFile(fp) {
+  const raw = fs.readFileSync(fp, "utf8");
+  const { data: fm, content } = parseFm(raw);
+  const rel = path.relative(CONTENT_DIR, fp);
   const parts = rel.split(path.sep);
   const outputRel = rel.replace(/\.md$/, ".html");
-  const outputPath = path.join(OUTPUT_DIR, outputRel);
   const urlPath = "/" + outputRel.replace(/\\/g, "/");
-
   return {
-    filepath,
-    outputPath,
+    fp, parts,
+    outputPath: path.join(OUTPUT_DIR, outputRel),
     urlPath,
-    parts,
-    frontmatter: {
-      title: frontmatter.title || path.basename(filepath, ".md"),
-      grade: frontmatter.grade || null,
-      tags: frontmatter.tags || [],
-      difficulty: frontmatter.difficulty || null,
-      prerequisites: frontmatter.prerequisites || [],
-      estimatedTime: frontmatter["estimated-time"] || null,
-      type: frontmatter.type || "lesson",
-      ...frontmatter,
+    fm: {
+      title:             fm.title || path.basename(fp, ".md"),
+      grade:             fm.grade || null,
+      tags:              Array.isArray(fm.tags) ? fm.tags : [],
+      difficulty:        fm.difficulty || null,
+      prerequisites:     Array.isArray(fm.prerequisites) ? fm.prerequisites : [],
+      estimatedTime:     fm["estimated-time"] || null,
+      type:              fm.type || "lesson",
+      sequence_position: fm.sequence_position ? Number(fm.sequence_position) : 999,
     },
-    html,
-    rawContent: content,
+    html: md(content),
+    raw: content,
   };
 }
 
-function buildNavTree(pages) {
-  const tree = {};
-
-  for (const page of pages) {
-    const parts = page.parts.slice(0, -1);
-    let node = tree;
-    for (const part of parts) {
-      if (!node[part]) node[part] = { _pages: [], _children: {} };
-      node = node[part]._children;
-    }
-    const dir = parts[parts.length - 1] || "__root__";
-    if (!tree[dir] && parts.length === 0) {
-      if (!tree.__root__) tree.__root__ = { _pages: [], _children: {} };
-      tree.__root__._pages.push({
-        title: page.frontmatter.title,
-        url: page.urlPath,
-        grade: page.frontmatter.grade,
-        tags: page.frontmatter.tags,
-        difficulty: page.frontmatter.difficulty,
-        type: page.frontmatter.type,
-      });
-    }
+// ── build nav JSON ───────────────────────────────────────────────────────────
+function buildNav(pages) {
+  const nav = {};
+  for (const p of pages) {
+    const key = p.parts.length > 1 ? p.parts[0] : "__root__";
+    if (!nav[key]) nav[key] = [];
+    nav[key].push({ title: p.fm.title, url: p.urlPath, grade: p.fm.grade, tags: p.fm.tags, difficulty: p.fm.difficulty, estimatedTime: p.fm.estimatedTime, type: p.fm.type, sequence_position: p.fm.sequence_position });
   }
-
-  function buildArray(dir, depth = 0) {
-    const result = [];
-    const stack = [{ node: {}, prefix: [] }];
-
-    function walk(obj, prefix) {
-      const entries = Object.entries(obj).filter(([k]) => k !== "__root__");
-      for (const [key, val] of entries) {
-        const item = {
-          label: key.replace(/-/g, " ").replace(/^\d+\s*/, ""),
-          slug: key,
-          path: "/" + [...prefix, key].join("/"),
-          pages: (val._pages || []).sort((a, b) => a.title.localeCompare(b.title)),
-          children: walk(val._children || {}, [...prefix, key]),
-        };
-        result.push(item);
-      }
-      return result.filter((x) => x);
-    }
-
-    walk(obj, []);
-    return result;
+  for (const k of Object.keys(nav)) {
+    nav[k].sort((a,b) => (a.sequence_position||999)-(b.sequence_position||999) || a.title.localeCompare(b.title));
   }
-
-  const flat = [];
-  function flattenTree(obj, prefix = []) {
-    for (const [key, val] of Object.entries(obj)) {
-      if (key === "__root__") {
-        for (const p of val._pages || []) flat.push({ ...p, section: [] });
-        continue;
-      }
-      for (const p of val._pages || []) flat.push({ ...p, section: [...prefix, key] });
-      flattenTree(val._children || {}, [...prefix, key]);
-    }
-  }
-  flattenTree(tree);
-
-  return { tree, flat };
+  return nav;
 }
 
-function buildNavJson(pages) {
-  const sections = {};
-
-  for (const page of pages) {
-    const parts = page.parts;
-    const sectionKey = parts.length > 1 ? parts[0] : "__root__";
-    if (!sections[sectionKey]) sections[sectionKey] = [];
-    sections[sectionKey].push({
-      title: page.frontmatter.title,
-      url: page.urlPath,
-      grade: page.frontmatter.grade,
-      tags: page.frontmatter.tags,
-      difficulty: page.frontmatter.difficulty,
-      estimatedTime: page.frontmatter.estimatedTime,
-      type: page.frontmatter.type,
-      path: page.parts,
-    });
-  }
-
-  return sections;
-}
-
-function buildBreadcrumbs(page) {
-  const crumbs = [{ label: "Home", url: "/" }];
-  const parts = page.parts.slice(0, -1);
-  let cumPath = "";
-  for (const part of parts) {
-    cumPath += "/" + part;
-    crumbs.push({ label: part.replace(/-/g, " ").replace(/^\d+\s*/, ""), url: cumPath });
-  }
-  crumbs.push({ label: page.frontmatter.title, url: page.urlPath, current: true });
-  return crumbs;
-}
-
-function renderPage(page, navJson, templateSrc) {
-  const template = Handlebars.compile(templateSrc);
-  const breadcrumbs = buildBreadcrumbs(page);
-
-  const relativeRoot = "../".repeat(page.parts.length - 1) || "./";
-
-  return template({
-    title: page.frontmatter.title,
-    grade: page.frontmatter.grade,
-    tags: page.frontmatter.tags,
-    difficulty: page.frontmatter.difficulty,
-    prerequisites: page.frontmatter.prerequisites,
-    estimatedTime: page.frontmatter.estimatedTime,
-    type: page.frontmatter.type,
-    content: page.html,
-    breadcrumbs,
-    navJson: JSON.stringify(navJson),
-    currentUrl: page.urlPath,
-    relativeRoot,
-    year: new Date().getFullYear(),
-  });
-}
-
-function copyAssets() {
-  if (!fs.existsSync(ASSETS_DIR)) return;
-  const destAssets = path.join(OUTPUT_DIR, "assets");
-  ensureDir(destAssets);
-
-  function copyDir(src, dest) {
-    ensureDir(dest);
-    for (const entry of fs.readdirSync(src, { withFileTypes: true })) {
-      const srcPath = path.join(src, entry.name);
-      const destPath = path.join(dest, entry.name);
-      if (entry.isDirectory()) copyDir(srcPath, destPath);
-      else fs.copyFileSync(srcPath, destPath);
-    }
-  }
-  copyDir(ASSETS_DIR, destAssets);
-}
-
-function copyPublicFiles() {
-  const publicDir = path.join(ROOT, "public");
-  if (!fs.existsSync(publicDir)) return;
-  function copyDir(src, dest) {
-    ensureDir(dest);
-    for (const entry of fs.readdirSync(src, { withFileTypes: true })) {
-      const srcPath = path.join(src, entry.name);
-      const destPath = path.join(dest, entry.name);
-      if (entry.isDirectory()) copyDir(srcPath, destPath);
-      else fs.copyFileSync(srcPath, destPath);
-    }
-  }
-  copyDir(publicDir, OUTPUT_DIR);
-}
-
-function generateIndexPage(navJson, templateSrc) {
-  const indexTemplatePath = path.join(TEMPLATES_DIR, "index.html");
-  let indexTemplate = templateSrc;
-  if (fs.existsSync(indexTemplatePath)) {
-    indexTemplate = fs.readFileSync(indexTemplatePath, "utf8");
-  }
-  const template = Handlebars.compile(indexTemplate);
-  return template({
-    title: "Altair K-12 Curriculum",
-    navJson: JSON.stringify(navJson),
-    year: new Date().getFullYear(),
-    relativeRoot: "./",
-    isIndex: true,
-  });
-}
-
-function generateSectionIndexPage(sectionKey, pages, navJson, templateSrc) {
-  const SECTION_META = {
-    "k-2":      { label: "Kindergarten – Grade 2", icon: "🌱" },
-    "3-5":      { label: "Grades 3 – 5",           icon: "🌿" },
-    "6-8":      { label: "Grades 6 – 8",           icon: "🔬" },
-    "9-12":     { label: "Grades 9 – 12",          icon: "🚀" },
-    "projects": { label: "Projects",               icon: "🛠" },
-    "exercises":{ label: "Exercises",              icon: "✏️" },
-  };
-  const meta = SECTION_META[sectionKey] || { label: sectionKey.replace(/-/g, " "), icon: "📂" };
-
-  const lessonListHtml = pages
-    .sort((a, b) => {
-      const ap = a.frontmatter.sequence_position || a.frontmatter.title;
-      const bp = b.frontmatter.sequence_position || b.frontmatter.title;
-      return ap < bp ? -1 : ap > bp ? 1 : 0;
-    })
-    .map((p) => {
-      const tags = (p.frontmatter.tags || []).map((t) => `<span class="tag">${t}</span>`).join("");
-      const meta2 = [
-        p.frontmatter.grade ? `Grade ${p.frontmatter.grade}` : "",
-        p.frontmatter["estimated-time"] || p.frontmatter.estimatedTime || "",
-        p.frontmatter.difficulty || "",
-      ].filter(Boolean).join(" · ");
-      return `<a class="section-lesson-card" href="../${p.urlPath.replace(/^\//, "")}">
-        <div class="slc-title">${p.frontmatter.title}</div>
-        ${meta2 ? `<div class="slc-meta">${meta2}</div>` : ""}
-        ${tags ? `<div class="slc-tags">${tags}</div>` : ""}
-      </a>`;
-    })
-    .join("\n");
-
-  const bodyHtml = `<section class="section-index">
-  <header class="section-index-header">
-    <span class="section-index-icon" aria-hidden="true">${meta.icon}</span>
-    <h1 class="section-index-title">${meta.label}</h1>
-    <p class="section-index-count">${pages.length} lesson${pages.length !== 1 ? "s" : ""}</p>
+// ── HTML shell ───────────────────────────────────────────────────────────────
+function shell(opts) {
+  const { title, relRoot, navJson, currentUrl, isIndex, body } = opts;
+  return `<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>${title} | Altair</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;1,9..144,300&family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="${relRoot}assets/css/main.css" />
+  <link rel="stylesheet" href="${relRoot}assets/css/lesson.css" />
+  <script>(function(){const s=localStorage.getItem("altair-theme");if(s==="dark"||(!s&&window.matchMedia("(prefers-color-scheme: dark)").matches))document.documentElement.setAttribute("data-theme","dark");})();</script>
+</head>
+<body>
+  <a class="skip-link" href="#main-content">Skip to main content</a>
+  <header class="site-header" role="banner">
+    <div class="header-inner">
+      <a href="${relRoot}index.html" class="logo" aria-label="Altair Home">
+        <span class="logo-mark" aria-hidden="true">◈</span>
+        <span class="logo-text">Altair</span>
+      </a>
+      <div class="header-controls">
+        <button class="search-trigger" aria-label="Open search" aria-expanded="false" aria-controls="search-modal">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <span>Search</span><kbd aria-label="Keyboard shortcut: slash">/</kbd>
+        </button>
+        <button class="theme-toggle" aria-label="Toggle dark mode" aria-pressed="false">
+          <span class="icon-sun" aria-hidden="true">☀</span>
+          <span class="icon-moon" aria-hidden="true">◑</span>
+        </button>
+        <button class="nav-toggle" aria-label="Toggle navigation" aria-expanded="false" aria-controls="sidebar">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
+    </div>
   </header>
-  <div class="section-lesson-grid">
-${lessonListHtml}
+  <div class="layout">
+    <nav id="sidebar" class="sidebar" aria-label="Curriculum navigation" role="navigation">
+      <div class="sidebar-inner">
+        <div class="sidebar-search">
+          <input type="search" id="sidebar-search-input" placeholder="Filter lessons…" aria-label="Filter sidebar navigation" autocomplete="off" />
+        </div>
+        <div id="nav-tree" role="tree" aria-label="Curriculum sections"></div>
+      </div>
+    </nav>
+    <main id="main-content" class="main-content" tabindex="-1">
+      ${body}
+    </main>
+    <aside class="toc-panel" aria-label="On this page" role="complementary">
+      <div class="toc-inner">
+        <p class="toc-label">On this page</p>
+        <nav id="toc" aria-label="Table of contents"></nav>
+        <div class="progress-track">
+          <div id="reading-progress" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+        </div>
+      </div>
+    </aside>
   </div>
-</section>`;
-
-  const template = Handlebars.compile(templateSrc);
-  return template({
-    title: meta.label + " — Altair",
-    navJson: JSON.stringify(navJson),
-    year: new Date().getFullYear(),
-    relativeRoot: "../",
-    isIndex: false,
-    content: bodyHtml,
-    breadcrumbs: [
-      { label: "Home", url: "/" },
-      { label: meta.label, url: "/" + sectionKey + "/", current: true },
-    ],
-    grade: null,
-    tags: [],
-    difficulty: null,
-    prerequisites: [],
-    estimatedTime: null,
-    type: "index",
-  });
+  <div id="search-modal" class="search-modal" role="dialog" aria-modal="true" aria-label="Search" hidden>
+    <div class="search-backdrop"></div>
+    <div class="search-panel">
+      <div class="search-input-wrap">
+        <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="search" id="search-input" class="search-field" placeholder="Search lessons, tags, topics…" aria-label="Search curriculum" autocomplete="off" spellcheck="false" />
+        <kbd class="search-esc" aria-label="Press Escape to close">Esc</kbd>
+      </div>
+      <div id="search-results" class="search-results" role="listbox" aria-label="Search results"></div>
+      <div class="search-footer"><span>↑↓ navigate</span><span>↵ open</span><span>esc close</span></div>
+    </div>
+  </div>
+  <div id="toast-container" class="toast-container" aria-live="polite" aria-atomic="true"></div>
+  <script>window.__NAV_JSON__ = ${navJson};</script>
+  <script>window.__CURRENT_URL__ = "${currentUrl}";</script>
+  <script>window.__RELATIVE_ROOT__ = "${relRoot}";</script>
+  <script>window.__IS_INDEX__ = ${isIndex};</script>
+  <script src="${relRoot}assets/js/nav.js" defer></script>
+  <script src="${relRoot}assets/js/search.js" defer></script>
+  <script src="${relRoot}assets/js/lesson.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js" defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js" defer></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css" />
+</body>
+</html>`;
 }
 
+// ── lesson page body ─────────────────────────────────────────────────────────
+function lessonBody(page) {
+  const fm = page.fm;
+  const crumbs = (() => {
+    const parts = page.parts.slice(0,-1);
+    const items = [{ label:"Home", url:"/" }];
+    let cum = "";
+    for (const p of parts) { cum += "/" + p; items.push({ label: p.replace(/-/g," "), url: cum }); }
+    items.push({ label: fm.title, url: page.urlPath, current: true });
+    return items.map((c,i) => {
+      const inner = c.current ? `<span>${c.label}</span>` : `<a href="${c.url}">${c.label}</a>`;
+      return `<li${c.current?' aria-current="page"':''}>${inner}</li>`;
+    }).join("");
+  })();
+
+  const tags = fm.tags.length ? `<div class="lesson-tags" aria-label="Tags">${fm.tags.map(t=>`<span class="tag">${t}</span>`).join("")}</div>` : "";
+  const prereqs = fm.prerequisites.length ? `<div class="prerequisites" role="note"><strong>Prerequisites:</strong><ul>${fm.prerequisites.map(p=>`<li>${p}</li>`).join("")}</ul></div>` : "";
+
+  return `<nav class="breadcrumb" aria-label="Breadcrumb"><ol>${crumbs}</ol></nav>
+<article class="lesson-article" itemscope itemtype="https://schema.org/LearningResource">
+  <header class="lesson-header">
+    ${fm.type ? `<span class="type-badge type-${fm.type}" role="note">${fm.type}</span>` : ""}
+    <h1 class="lesson-title" itemprop="name">${fm.title}</h1>
+    <div class="lesson-meta" role="list" aria-label="Lesson metadata">
+      ${fm.grade ? `<div class="meta-chip" role="listitem"><span class="meta-icon" aria-hidden="true">🎓</span><span>Grade ${fm.grade}</span></div>` : ""}
+      ${fm.difficulty ? `<div class="meta-chip meta-difficulty-${fm.difficulty}" role="listitem"><span class="meta-icon" aria-hidden="true">⚡</span><span>${fm.difficulty}</span></div>` : ""}
+      ${fm.estimatedTime ? `<div class="meta-chip" role="listitem"><span class="meta-icon" aria-hidden="true">⏱</span><span>${fm.estimatedTime}</span></div>` : ""}
+    </div>
+    ${tags}
+    ${prereqs}
+  </header>
+  <div class="lesson-body" itemprop="text">${page.html}</div>
+  <footer class="lesson-footer">
+    <div class="completion-block">
+      <button class="mark-complete-btn" aria-pressed="false" data-url="${page.urlPath}">
+        <span class="btn-icon" aria-hidden="true">✓</span>
+        <span class="btn-text">Mark as Complete</span>
+      </button>
+      <div class="xp-reward" aria-live="polite"></div>
+    </div>
+    <nav class="lesson-nav" aria-label="Previous and next lesson">
+      <a id="prev-lesson" class="lesson-nav-btn" hidden>← Previous</a>
+      <a id="next-lesson" class="lesson-nav-btn lesson-nav-next" hidden>Next →</a>
+    </nav>
+  </footer>
+</article>`;
+}
+
+// ── homepage body ────────────────────────────────────────────────────────────
+function indexBody() {
+  return `<section class="index-hero">
+  <h1 class="hero-title">Altair <em>K–12</em><br/>Curriculum</h1>
+  <p class="hero-subtitle">A free, open-source, community-driven computer science curriculum for every grade.</p>
+  <div id="curriculum-grid" class="curriculum-grid" aria-label="Curriculum sections"></div>
+</section>`;
+}
+
+// ── section index body ───────────────────────────────────────────────────────
+function sectionBody(sectionKey, pages) {
+  const META = {
+    "k-2":      { label:"Kindergarten – Grade 2", icon:"🌱" },
+    "3-5":      { label:"Grades 3 – 5",           icon:"🌿" },
+    "6-8":      { label:"Grades 6 – 8",           icon:"🔬" },
+    "9-12":     { label:"Grades 9 – 12",          icon:"🚀" },
+    "projects": { label:"Projects",               icon:"🛠"  },
+  };
+  const meta = META[sectionKey] || { label: sectionKey.replace(/-/g," "), icon:"📂" };
+  const cards = pages.map(p => {
+    const tags = p.fm.tags.map(t=>`<span class="tag">${t}</span>`).join("");
+    const info = [p.fm.grade?`Grade ${p.fm.grade}`:"", p.fm.estimatedTime||"", p.fm.difficulty||""].filter(Boolean).join(" · ");
+    return `<a class="section-lesson-card" href="../${p.urlPath.replace(/^\//,"")}">
+  <div class="slc-title">${p.fm.title}</div>
+  ${info?`<div class="slc-meta">${info}</div>`:""}
+  ${tags?`<div class="slc-tags">${tags}</div>`:""}
+</a>`;
+  }).join("\n");
+  return `<section class="section-index">
+  <header class="section-index-header">
+    <span class="section-index-icon">${meta.icon}</span>
+    <h1 class="section-index-title">${meta.label}</h1>
+    <p class="section-index-count">${pages.length} lesson${pages.length!==1?"s":""}</p>
+  </header>
+  <div class="section-lesson-grid">${cards}</div>
+</section>`;
+}
+
+// ── main ─────────────────────────────────────────────────────────────────────
 function main() {
   console.log("🚀 Altair K-12 Generator starting...");
-
   ensureDir(OUTPUT_DIR);
-  copyPublicFiles();
-  copyAssets();
+  if (fs.existsSync(path.join(ROOT,"public"))) copyDir(path.join(ROOT,"public"), OUTPUT_DIR);
+  if (fs.existsSync(ASSETS_DIR)) copyDir(ASSETS_DIR, path.join(OUTPUT_DIR,"assets"));
 
-  const templatePath = path.join(TEMPLATES_DIR, "lesson.html");
-  if (!fs.existsSync(templatePath)) {
-    console.error("❌ Template not found: templates/lesson.html");
-    process.exit(1);
-  }
-  const templateSrc = fs.readFileSync(templatePath, "utf8");
+  const pages = collectMd(CONTENT_DIR).map(parseFile);
+  const nav   = buildNav(pages);
+  const navJson = JSON.stringify(nav);
 
-  const mdFiles = collectMarkdownFiles(CONTENT_DIR);
-  if (mdFiles.length === 0) {
-    console.warn("⚠️  No Markdown files found in content/");
-  }
+  fs.writeFileSync(path.join(OUTPUT_DIR,"nav.json"), JSON.stringify(nav,null,2));
+  console.log(`📋 nav.json → ${pages.length} pages`);
 
-  const pages = mdFiles.map(parseFile);
-  const navJson = buildNavJson(pages);
-
-  fs.writeFileSync(NAV_OUTPUT, JSON.stringify(navJson, null, 2));
-  console.log(`📋 nav.json written with ${pages.length} entries`);
-
-  for (const page of pages) {
-    ensureDir(path.dirname(page.outputPath));
-    const rendered = renderPage(page, navJson, templateSrc);
-    fs.writeFileSync(page.outputPath, rendered);
-    console.log(`✅ ${page.urlPath}`);
+  // lesson pages
+  for (const p of pages) {
+    const relRoot = "../".repeat(p.parts.length - 1) || "./";
+    ensureDir(path.dirname(p.outputPath));
+    fs.writeFileSync(p.outputPath, shell({
+      title: p.fm.title, relRoot, navJson,
+      currentUrl: p.urlPath, isIndex: false,
+      body: lessonBody(p),
+    }));
+    console.log(`✅ ${p.urlPath}`);
   }
 
-  const indexHtml = generateIndexPage(navJson, templateSrc);
-  fs.writeFileSync(path.join(OUTPUT_DIR, "index.html"), indexHtml);
-  console.log("🏠 index.html written");
-
-
-  for (const [sectionKey, sectionPages] of Object.entries(navJson)) {
-    if (sectionKey === '__root__' || !sectionPages.length) continue;
-    const sectionDir = path.join(OUTPUT_DIR, sectionKey);
-    ensureDir(sectionDir);
-    const fullPages = sectionPages.map((sp) => {
-      return pages.find((p) => p.urlPath === sp.url) || { frontmatter: sp, urlPath: sp.url };
-    });
-    const sectionIndexHtml = generateSectionIndexPage(sectionKey, fullPages, navJson, templateSrc);
-    fs.writeFileSync(path.join(sectionDir, 'index.html'), sectionIndexHtml);
-    console.log('📂 ' + sectionKey + '/index.html written');
-  }
-
-  const searchIndex = pages.map((p) => ({
-    title: p.frontmatter.title,
-    url: p.urlPath,
-    tags: p.frontmatter.tags,
-    grade: p.frontmatter.grade,
-    difficulty: p.frontmatter.difficulty,
-    type: p.frontmatter.type,
-    excerpt: p.rawContent.slice(0, 200).replace(/[#*`>\-\[\]]/g, "").trim(),
+  // homepage
+  fs.writeFileSync(path.join(OUTPUT_DIR,"index.html"), shell({
+    title: "Altair K-12 Curriculum", relRoot: "./", navJson,
+    currentUrl: "/", isIndex: true, body: indexBody(),
   }));
-  fs.writeFileSync(
-    path.join(OUTPUT_DIR, "search-index.json"),
-    JSON.stringify(searchIndex, null, 2)
-  );
-  console.log("🔍 search-index.json written");
+  console.log("🏠 index.html");
 
-  console.log(`\n✨ Done. ${pages.length} pages generated in dist/`);
+  // section index pages
+  for (const [key, entries] of Object.entries(nav)) {
+    if (key === "__root__") continue;
+    const sectionDir = path.join(OUTPUT_DIR, key);
+    ensureDir(sectionDir);
+    const fullPages = entries.map(e => pages.find(p => p.urlPath === e.url)).filter(Boolean);
+    fs.writeFileSync(path.join(sectionDir,"index.html"), shell({
+      title: key + " — Altair", relRoot: "../", navJson,
+      currentUrl: "/" + key + "/", isIndex: false,
+      body: sectionBody(key, fullPages),
+    }));
+    console.log(`📂 ${key}/index.html`);
+  }
+
+  // search index
+  fs.writeFileSync(path.join(OUTPUT_DIR,"search-index.json"), JSON.stringify(
+    pages.map(p => ({ title: p.fm.title, url: p.urlPath, tags: p.fm.tags, grade: p.fm.grade, difficulty: p.fm.difficulty, type: p.fm.type, excerpt: p.raw.slice(0,200).replace(/[#*`>\-\[\]]/g,"").trim() })),
+    null, 2
+  ));
+  console.log("🔍 search-index.json");
+  console.log(`\n✨ Done. ${pages.length} pages in dist/`);
 }
 
 main();
