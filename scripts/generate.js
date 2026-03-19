@@ -2,6 +2,11 @@
 "use strict";
 
 const schoolsBody = require("./schools-body.js");
+
+// Read Supabase config from environment — injected as window globals at build time
+const SUPABASE_URL      = process.env.SUPABASE_URL      || "";
+const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY || "";
+
 const fs   = require("fs");
 const path = require("path");
 
@@ -198,6 +203,10 @@ function shell({ title, relRoot, navJson, currentUrl, isIndex, body }) {
         <button class="nav-toggle" aria-label="Toggle navigation" aria-expanded="false" aria-controls="sidebar">
           <span></span><span></span><span></span>
         </button>
+        <div class="auth-header-wrap">
+          <button id="auth-btn" class="auth-btn" aria-label="Sign in or create account">Sign in</button>
+          <div id="auth-user-menu" class="auth-user-menu" role="menu" aria-label="Account menu"></div>
+        </div>
       </div>
     </div>
   </header>
@@ -242,6 +251,41 @@ function shell({ title, relRoot, navJson, currentUrl, isIndex, body }) {
 
   <div id="toast-container" class="toast-container" aria-live="polite" aria-atomic="true"></div>
 
+  <div id="auth-modal" class="auth-modal" role="dialog" aria-modal="true" aria-label="Sign in or create account" hidden>
+    <div class="auth-modal-backdrop"></div>
+    <div class="auth-panel">
+      <button id="auth-modal-close" class="auth-modal-close" aria-label="Close">&#10005;</button>
+      <div class="auth-tabs" role="tablist" aria-label="Authentication">
+        <button class="auth-tab-btn active" id="auth-tabBtn-signin" role="tab" data-tab="signin" aria-selected="true">Sign in</button>
+        <button class="auth-tab-btn" id="auth-tabBtn-signup" role="tab" data-tab="signup" aria-selected="false">Create account</button>
+      </div>
+      <div id="auth-tab-signin">
+        <form id="auth-signin-form" class="auth-form" novalidate>
+          <label class="auth-label" for="signin-email">Email</label>
+          <input class="auth-input" id="signin-email" name="email" type="email" autocomplete="email" required placeholder="you@example.com" />
+          <label class="auth-label" for="signin-password">Password</label>
+          <input class="auth-input" id="signin-password" name="password" type="password" autocomplete="current-password" required placeholder="Your password" />
+          <p id="signin-msg" class="auth-msg" hidden></p>
+          <button type="submit" class="auth-submit-btn">Sign in</button>
+        </form>
+      </div>
+      <div id="auth-tab-signup" hidden>
+        <form id="auth-signup-form" class="auth-form" novalidate>
+          <label class="auth-label" for="signup-name">Display name</label>
+          <input class="auth-input" id="signup-name" name="display_name" type="text" autocomplete="name" placeholder="Your name" />
+          <label class="auth-label" for="signup-email">Email</label>
+          <input class="auth-input" id="signup-email" name="email" type="email" autocomplete="email" required placeholder="you@example.com" />
+          <label class="auth-label" for="signup-password">Password</label>
+          <input class="auth-input" id="signup-password" name="password" type="password" autocomplete="new-password" required placeholder="At least 8 characters" />
+          <label class="auth-label" for="signup-confirm">Confirm password</label>
+          <input class="auth-input" id="signup-confirm" name="confirm_password" type="password" autocomplete="new-password" required placeholder="Repeat password" />
+          <p id="signup-msg" class="auth-msg" hidden></p>
+          <button type="submit" class="auth-submit-btn">Create account</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
   <script>window.__NAV_JSON__ = ${navJson};</script>
   <script>window.__CURRENT_URL__ = "${currentUrl}";</script>
   <script>window.__RELATIVE_ROOT__ = "${relRoot}";</script>
@@ -254,6 +298,10 @@ function shell({ title, relRoot, navJson, currentUrl, isIndex, body }) {
   <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js" defer></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css" />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js" defer></script>
+  <script>window.__SUPABASE_URL__ = "${SUPABASE_URL}";</script>
+  <script>window.__SUPABASE_ANON_KEY__ = "${SUPABASE_ANON_KEY}";</script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script src="${relRoot}assets/js/auth.js" defer></script>
 </body>
 </html>`;
 }
