@@ -111,6 +111,9 @@ jobs:
 
       - name: Run generator
         run: npm run build
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
 
       - name: Verify output
         run: |
@@ -229,6 +232,9 @@ jobs:
 
       - name: Build
         run: npm run build
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
 
       - name: Report new and changed pages
         run: |
