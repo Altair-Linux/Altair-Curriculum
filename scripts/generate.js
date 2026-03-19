@@ -162,7 +162,7 @@ function buildNav(pages) {
 }
 
 // ── HTML shell — used for every page ─────────────────────────────────────────
-function shell({ title, relRoot, navJson, currentUrl, isIndex, body }) {
+function shell({ title, relRoot, navJson, currentUrl, isIndex, isModeration, body }) {
   const logoSvg = fs.existsSync(path.join(OUTPUT_DIR, "logo.svg"))
     ? `<img src="${relRoot}logo.svg" alt="Altair logo" class="logo-img" width="28" height="28" />`
     : `<span class="logo-mark" aria-hidden="true">◈</span>`;
@@ -302,6 +302,7 @@ function shell({ title, relRoot, navJson, currentUrl, isIndex, body }) {
   <script>window.__SUPABASE_ANON_KEY__ = "${SUPABASE_ANON_KEY}";</script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
   <script src="${relRoot}assets/js/auth.js" defer></script>
+  ${isModeration ? `<script src="${relRoot}assets/js/moderation.js" defer></script>` : ""}
 </body>
 </html>`;
 }
@@ -395,6 +396,43 @@ function sectionBody(sectionKey, pages) {
 </section>`;
 }
 
+
+// ── Moderation queue page body ────────────────────────────────────────────────
+function moderationBody() {
+  const statusOptions = [
+    ["","All statuses"],["pending","Pending"],["under_review","Under review"],
+    ["approved","Approved"],["rejected","Rejected"],["needs_changes","Needs changes"]
+  ].map(o => `<option value="${o[0]}">${o[1]}</option>`).join("");
+
+  const typeOptions = [
+    ["","All types"],["new_school","New school"],["ownership_claim","Ownership claim"],
+    ["school_edit","School edit"],["curriculum_feedback","Curriculum feedback"]
+  ].map(o => `<option value="${o[0]}">${o[1]}</option>`).join("");
+
+  return `<div class="mod-page">
+  <div id="mod-gate" aria-live="polite"></div>
+  <div id="mod-content" class="mod-wrap" hidden>
+    <header class="mod-header">
+      <div>
+        <h1 class="mod-title">Moderation Queue</h1>
+        <p id="mod-count" class="mod-subtitle" aria-live="polite"></p>
+      </div>
+      <button id="mod-refresh" class="mod-refresh-btn" aria-label="Refresh queue">&#8635; Refresh</button>
+    </header>
+    <div class="mod-filters" role="group" aria-label="Filter queue">
+      <select id="mod-filter-status" class="mod-select" aria-label="Filter by status">${statusOptions}</select>
+      <select id="mod-filter-type"   class="mod-select" aria-label="Filter by type">${typeOptions}</select>
+    </div>
+    <div class="mod-layout">
+      <div class="mod-list-col">
+        <div id="mod-list" class="mod-list" role="list" aria-label="Queue items"></div>
+      </div>
+      <div id="mod-detail" class="mod-detail" hidden aria-label="Item detail"></div>
+    </div>
+  </div>
+</div>`;
+}
+
 function main() {
   console.log("🚀 Altair K-12 Generator starting...");
   ensureDir(OUTPUT_DIR);
@@ -419,8 +457,8 @@ function main() {
   for (const p of pages) {
     const relRoot = "../".repeat(p.parts.length - 1) || "./";
     ensureDir(path.dirname(p.outputPath));
-    const body = p.fm.type === 'schools' ? schoolsBody(schoolsData) : lessonBody(p);
-    fs.writeFileSync(p.outputPath, shell({ title: p.fm.title, relRoot, navJson, currentUrl: p.urlPath, isIndex: false, body }));
+    const body = p.fm.type === 'schools' ? schoolsBody(schoolsData) : p.fm.type === 'moderation' ? moderationBody() : lessonBody(p);
+    fs.writeFileSync(p.outputPath, shell({ title: p.fm.title, relRoot, navJson, currentUrl: p.urlPath, isIndex: false, isModeration: p.fm.type === 'moderation', body }));
     console.log(`✅ ${p.urlPath}`);
   }
 
@@ -431,6 +469,9 @@ function main() {
     if (key === "__root__") continue;
     const sectionDir = path.join(OUTPUT_DIR, key);
     ensureDir(sectionDir);
+    // If a content page already owns /<key>/index.html, do not overwrite it
+    const hasContentIndex = pages.some(p => p.urlPath === "/" + key + "/index.html");
+    if (hasContentIndex) { console.log(`📂 ${key}/index.html (content page — skipped overwrite)`); continue; }
     const fullPages = entries.map(e => pages.find(p => p.urlPath === e.url)).filter(Boolean);
     fs.writeFileSync(path.join(sectionDir, "index.html"), shell({ title: key + " — Altair", relRoot: "../", navJson, currentUrl: "/" + key + "/", isIndex: false, body: sectionBody(key, fullPages) }));
     console.log(`📂 ${key}/index.html`);
