@@ -129,6 +129,7 @@ function parseFile(fp) {
     outputPath: path.join(OUTPUT_DIR, outputRel),
     urlPath,
     fm: {
+      id:                fm.id || null,
       title:             fm.title || path.basename(fp, ".md"),
       grade:             fm.grade || null,
       tags:              Array.isArray(fm.tags) ? fm.tags : [],
@@ -149,10 +150,11 @@ function buildNav(pages) {
     const key = p.parts.length > 1 ? p.parts[0] : "__root__";
     if (!nav[key]) nav[key] = [];
     nav[key].push({
-      title: p.fm.title, url: p.urlPath, grade: p.fm.grade,
+      id: p.fm.id, title: p.fm.title, url: p.urlPath, grade: p.fm.grade,
       tags: p.fm.tags, difficulty: p.fm.difficulty,
       estimatedTime: p.fm.estimatedTime, type: p.fm.type,
       sequence_position: p.fm.sequence_position,
+      prerequisites: p.fm.prerequisites,
     });
   }
   for (const k of Object.keys(nav)) {
